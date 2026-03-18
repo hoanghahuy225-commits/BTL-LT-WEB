@@ -402,10 +402,35 @@
 
     <script th:inline="javascript">
       /*<![CDATA[*/
-      const productVariants = /*[[${variant}]]*/ [];
-      const productImages   = /*[[${product.images}]]*/ [];
-      const colorsData      = /*[[${colors}]]*/ [];
-      const sizesData       = /*[[${sizes}]]*/ [];
+      const productVariants = [];
+      /*[# th:each="v : ${variant}"]*/
+      productVariants.push({
+          id: /*[[${v.id}]]*/ null,
+          colorId: /*[[${v.colorId}]]*/ null,
+          sizeId: /*[[${v.sizeId}]]*/ null,
+          stockQuantity: /*[[${v.stockQuantity}]]*/ 0
+      });
+      /*[/]*/
+
+      const productImages = [];
+      /*[# th:each="img : ${product.images}"]*/
+      productImages.push({
+          id: /*[[${img.id}]]*/ null,
+          colorId: /*[[${img.colorId}]]*/ null,
+          imageUrl: /*[[${img.imageUrl}]]*/ null
+      });
+      /*[/]*/
+
+      const colorsData = [];
+      /*[# th:each="c : ${colors}"]*/
+      colorsData.push({ id: /*[[${c.id}]]*/ null, name: /*[[${c.name}]]*/ '' });
+      /*[/]*/
+
+      const sizesData = [];
+      /*[# th:each="s : ${sizes}"]*/
+      sizesData.push({ id: /*[[${s.id}]]*/ null, name: /*[[${s.name}]]*/ '' });
+      /*[/]*/
+
       const productId = /*[[${product.id}]]*/ 0;
       // Build lookup maps: id -> name
       const colorMap = {};
@@ -441,8 +466,8 @@
             colorGroup.style.display = 'block';
             colorContainer.innerHTML = uniqueColors.map(cId => {
                 // Dùng tên thực tế từ DB, fallback 'Màu X' nếu chưa có
-                const label = colorMap[cId] || `Màu ${cId}`;
-                return `<button type="button" class="variant-btn color-btn" data-color="${cId}" onclick="selectColor(${cId})">${label}</button>`;
+                const label = colorMap[cId] || ('Màu ' + cId);
+                return '<button type="button" class="variant-btn color-btn" data-color="' + cId + '" onclick="selectColor(' + cId + ')">' + label + '</button>';
             }).join('');
         }
         
@@ -450,8 +475,8 @@
             sizeGroup.style.display = 'block';
             sizeContainer.innerHTML = uniqueSizes.map(sId => {
                 // Dùng tên thực tế từ DB, fallback 'Size X'
-                const label = sizeMap[sId] || `Size ${sId}`;
-                return `<button type="button" class="variant-btn size-btn" data-size="${sId}" onclick="selectSize(${sId})">${label}</button>`;
+                const label = sizeMap[sId] || ('Size ' + sId);
+                return '<button type="button" class="variant-btn size-btn" data-size="' + sId + '" onclick="selectSize(' + sId + ')">' + label + '</button>';
             }).join('');
         }
         
@@ -469,7 +494,7 @@
                 changeMainImage(matchedImg.imageUrl);
                 // Highlight thumbnail trong strip
                 document.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('active'));
-                const matchedThumb = document.querySelector(`.thumb-item[data-color="${selectedColorId}"]`);
+                const matchedThumb = document.querySelector('.thumb-item[data-color="' + selectedColorId + '"]');
                 if (matchedThumb) matchedThumb.classList.add('active');
             }
         }
@@ -543,7 +568,7 @@
              if (variant) {
                  selectedVariantId = variant.id;
                  availableStock = variant.stockQuantity;
-                 stockDisplay.innerHTML = `Còn <strong>${availableStock}</strong> sản phẩm`;
+                 stockDisplay.innerHTML = 'Còn <strong>' + availableStock + '</strong> sản phẩm';
                  stockDisplay.style.color = 'var(--gray-700)';
              } else {
                  availableStock = 0;
@@ -625,7 +650,12 @@
             return;
         }
         const qty = document.getElementById('product-qty').value;
-        showToast(`Đang chuyển tới thanh toán cho ${qty} sản phẩm...`, 'success');
+        const params = new URLSearchParams({
+            productId: productId,
+            qty: qty
+        });
+        if (selectedVariantId) params.set('variantId', selectedVariantId);
+        window.location.href = '/checkout?' + params.toString();
       }
 
       /* ── Wishlist ── */

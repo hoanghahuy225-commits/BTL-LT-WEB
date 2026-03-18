@@ -16,8 +16,11 @@ public class WishListService {
     private WishListRepository wishListRepository; 
 
     public void addWishList(Integer userId, Integer productId) {
-        WishList wishList = new  WishList(userId, productId, LocalDateTime.now());
-        wishListRepository.save(wishList); 
+        List<Integer> existingIds = getWishListProductIds(userId);
+        if (!existingIds.contains(productId)) {
+            WishList wishList = new WishList(userId, productId, LocalDateTime.now());
+            wishListRepository.save(wishList); 
+        }
     }
 
     @org.springframework.transaction.annotation.Transactional

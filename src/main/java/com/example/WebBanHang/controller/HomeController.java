@@ -99,6 +99,13 @@ public class HomeController {
                 productService.getProductDetail(id, currentUser != null ? currentUser.getId() : null);
 
         model.addAttribute("product", dto);
+
+        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("sports",     sportService.getAllSports());
+        model.addAttribute("brands",     brandService.getAllBrands());
+       
+
+
         model.addAttribute("variant", productVariantService.getAllProductVariants(id));
         model.addAttribute("colors", colorRepository.findAll());
         model.addAttribute("sizes", sizeRepository.findAllByOrderByOrderAsc());

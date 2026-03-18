@@ -27,7 +27,7 @@ public class CartItemDto {
     // Color info
     private Integer colorId;
     private String colorName;
-    private String colorCode;   // mã hex vd: #FF0000
+    private String colorCode;   
 
     // Size info
     private Integer sizeId;

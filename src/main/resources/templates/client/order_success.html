@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đặt hàng thành công - SportZone</title>
+    <link rel="stylesheet" href="/css/client/base.css">
+    <link rel="stylesheet" href="/css/client/header.css">
+    <link rel="stylesheet" href="/css/client/footer.css">
+    <style>
+        .success-page {
+            max-width: 600px;
+            margin: 4rem auto 6rem;
+            text-align: center;
+            background: #fff;
+            padding: 3rem 2rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #dcfce7;
+            color: #16a34a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+        .success-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+        .success-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+        .order-code-box {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        .order-code-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .order-code-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #2563eb;
+            letter-spacing: 2px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+        .btn-secondary {
+            background: #fff;
+            color: #374151;
+            border: 1.5px solid #d1d5db;
+        }
+        .btn-secondary:hover {
+            background: #f3f4f6;
+            color: #111827;
+            border-color: #9ca3af;
+        }
+        body {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <th:block th:replace="~{client/fragments/header :: header_fragment}"></th:block>
+
+    <div class="container">
+        <div class="success-page">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </div>
+            
+            <h1 class="success-title">Đặt hàng thành công!</h1>
+            <p class="success-subtitle">Cảm ơn bạn đã tin tưởng và mua sắm tại SportZone.<br>Đơn hàng của bạn đang được xử lý.</p>
+            
+            <div class="order-code-box">
+                <div class="order-code-label">Mã đơn hàng của bạn</div>
+                <div class="order-code-value" th:text="${orderCode != null ? orderCode : 'Đang cập nhật'}">DH20260318A1B2</div>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 2rem;">
+                Chúng tôi sẽ sớm liên hệ với bạn để xác nhận đơn hàng.<br>Bạn có thể theo dõi trạng thái đơn hàng trong phần tài khoản.
+            </p>
+
+            <div class="btn-group">
+                <a href="/" class="btn btn-secondary">Tiếp tục mua sắm</a>
+                <a href="/profile/orders" class="btn btn-primary">Xem đơn hàng</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <th:block th:replace="~{client/fragments/footer :: footer_fragment}"></th:block>
+
+</body>
+</html>

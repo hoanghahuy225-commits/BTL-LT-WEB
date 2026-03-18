@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.WebBanHang.dto.ApiResponse;
 import com.example.WebBanHang.model.WishList;
 import com.example.WebBanHang.service.WishListService;
-
+import com.example.WebBanHang.service.SportService;
 @Controller
 @RequestMapping("wishlist")
 public class WishListController {
@@ -26,6 +26,8 @@ public class WishListController {
     private WishListService wishListService;
     @Autowired
     private ProductService productService;
+    @Autowired
+    private SportService sportService;
 
     @Autowired
     private com.example.WebBanHang.service.CategoryService categoryService;
@@ -61,10 +63,11 @@ public class WishListController {
                 .filter(p -> p != null)
                 .collect(Collectors.toList());
         List<ProductSummaryDto> listWishList = productService.listSummary(userId , products) ;
-        
-        // Đổ dữ liệu cho Header
         model.addAttribute("categories", categoryService.getAllCategories());
-        model.addAttribute("brands", brandService.getAllBrands());
+        model.addAttribute("sports",     sportService.getAllSports());
+        model.addAttribute("brands",     brandService.getAllBrands());
+        // Đổ dữ liệu cho Header
+        
         model.addAttribute("wishlistProducts", listWishList);
 
 

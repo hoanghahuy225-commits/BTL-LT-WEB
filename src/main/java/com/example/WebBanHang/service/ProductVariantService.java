@@ -71,4 +71,11 @@ public class ProductVariantService {
                 return ResponseEntity.badRequest().body(new ApiResponse<>( "ERROR", "Lỗi Server", null)); 
             }
          }
+         public void updateStockQuantity(Integer variantId, int quantity) {
+            ProductVariant variant = productVariantRepository.findById(variantId).orElse(null);
+            if (variant != null) {
+                variant.setStockQuantity(variant.getStockQuantity() - quantity);
+                productVariantRepository.save(variant);
+            }
+         } 
 }

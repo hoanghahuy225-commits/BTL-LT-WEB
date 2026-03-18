@@ -144,4 +144,11 @@ public class CartService {
             cartRepository.save(existingCart);
         }
     }
+
+    /** Lọc các item theo danh sách cartId (dùng cho trang checkout) */
+    public List<CartItemDto> getCartItemsByIds(Integer userId, List<Integer> cartIds) {
+        return listCart(userId).stream()
+                .filter(item -> item != null && cartIds.contains(item.getCartId()))
+                .collect(Collectors.toList());
+    }
 }

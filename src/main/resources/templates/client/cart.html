@@ -803,7 +803,9 @@
             return;
         }
 
-        window.location.href = '/checkout';
+        // Thu thập cartId của các row được chọn
+        const cartIds = checkedRows.map(row => row.id.replace('row-', ''));
+        window.location.href = '/checkout?cartIds=' + cartIds.join('&cartIds=');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
