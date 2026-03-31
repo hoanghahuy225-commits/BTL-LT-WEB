@@ -633,21 +633,6 @@
     }
 
     /* ── Header interactions (same as index) ── */
-    document.addEventListener('DOMContentLoaded', () => {
-        const accountBtn = document.getElementById('account-btn');
-        if (accountBtn) {
-            accountBtn.addEventListener('click', e => {
-                e.stopPropagation();
-                const isLoggedIn = sessionStorage.getItem('currentUser') != null;
-                if (isLoggedIn) {
-                    const menu = document.getElementById('account-dropdown');
-                    if (menu) menu.classList.toggle('active');
-                    else window.location.href = '/login';
-                } else {
-                    window.location.href = '/login';
-                }
-            });
-        }
 
         document.addEventListener('click', event => {
             const menu = document.getElementById('account-dropdown');
@@ -675,7 +660,7 @@
                 }
             });
         }
-    });
+    
 </script>
 
 </body>

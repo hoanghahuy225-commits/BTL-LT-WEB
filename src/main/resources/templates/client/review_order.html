@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đánh giá sản phẩm - SportZone</title>
+    <link rel="stylesheet" href="/css/client/base.css">
+    <link rel="stylesheet" href="/css/client/header.css">
+    <link rel="stylesheet" href="/css/client/footer.css">
+    <style>
+        body { background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        /* ── Page ── */
+        .review-page {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 2.5rem 1rem 6rem;
+        }
+
+        /* ── Back link ── */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: #111827; }
+
+        /* ── Page header ── */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: #111827;
+            margin: 0 0 0.3rem;
+        }
+        .page-header p { color: #6b7280; font-size: 0.95rem; margin: 0; }
+
+        /* ── Order info banner ── */
+        .order-banner {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .order-banner-code { font-size: 1.05rem; font-weight: 800; color: #2563eb; }
+        .order-banner-date { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; }
+        .delivered-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #dcfce7;
+            color: #16a34a;
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 0.35rem 0.85rem;
+            border-radius: 50px;
+        }
+        .delivered-chip::before {
+            content: "";
+            width: 7px; height: 7px;
+            background: #22c55e;
+            border-radius: 50%;
+        }
+
+        /* ── Product card ── */
+        .product-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.03);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .product-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); }
+
+        /* Product info row */
+        .product-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .product-thumb {
+            width: 72px;
+            height: 72px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        .product-thumb-placeholder {
+            width: 72px;
+            height: 72px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+        }
+        .product-name {
+            font-weight: 700;
+            color: #111827;
+            font-size: 1rem;
+            margin-bottom: 0.2rem;
+        }
+        .product-variant {
+            font-size: 0.83rem;
+            color: #6b7280;
+        }
+
+        /* Review form */
+        .review-form {
+            padding: 1.25rem 1.5rem;
+        }
+        .review-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #374151;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.6rem;
+        }
+
+        /* ── Star rating (CSS only, reverse order trick) ── */
+        .stars {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 0.15rem;
+            margin-bottom: 1.1rem;
+        }
+        .stars input { display: none; }
+        .stars label {
+            font-size: 2rem;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: color 0.15s, transform 0.15s;
+            line-height: 1;
+        }
+        .stars label:hover,
+        .stars label:hover ~ label,
+        .stars input:checked ~ label {
+            color: #f59e0b;
+        }
+        .stars label:hover { transform: scale(1.18); }
+
+        /* Textarea */
+        .review-textarea {
+            width: 100%;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: #374151;
+            resize: vertical;
+            min-height: 85px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .review-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+
+        /* Submit button */
+        .btn-submit-review {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.9rem;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #fff;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 9px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(37,99,235,0.25);
+        }
+        .btn-submit-review:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 16px rgba(37,99,235,0.35);
+        }
+        .btn-submit-review:disabled {
+            background: #9ca3af;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Already reviewed badge */
+        .reviewed-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #16a34a;
+            font-weight: 600;
+            font-size: 0.9rem;
+            background: #dcfce7;
+            padding: 0.55rem 1.1rem;
+            border-radius: 50px;
+        }
+
+        /* Empty state (no items with productId) */
+        .empty-hint {
+            background: #fff;
+            border: 1px dashed #d1d5db;
+            border-radius: 14px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+
+    <th:block th:replace="~{client/fragments/header :: header_fragment}"></th:block>
+
+    <div class="review-page">
+
+        <!-- Back -->
+        <a href="/orders" class="back-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Quay lại đơn hàng
+        </a>
+
+        <!-- Page header -->
+        <div class="page-header">
+            <h1>Đánh giá sản phẩm</h1>
+            <p>Chia sẻ trải nghiệm của bạn để giúp người mua khác có lựa chọn tốt hơn.</p>
+        </div>
+
+        <!-- Order banner -->
+        <div class="order-banner">
+            <div>
+                <div class="order-banner-code" th:text="'Đơn hàng #' + ${order.orderCode}">Đơn hàng #CODE</div>
+                <div class="order-banner-date"
+                     th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</div>
+            </div>
+            <span class="delivered-chip">Đã giao hàng</span>
+        </div>
+
+        <!-- Product cards -->
+        <th:block th:each="item : ${items}">
+            <div class="product-card" th:if="${item.productId != null}">
+
+                <!-- Product info -->
+                <div class="product-row">
+                    <a th:href="@{/product/{id}(id=${item.productId})}">
+                        <img th:if="${item.productImage != null}"
+                             th:src="${item.productImage}"
+                             class="product-thumb"
+                             alt="product">
+                        <div th:unless="${item.productImage != null}" class="product-thumb-placeholder">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                        </div>
+                    </a>
+                    <div>
+                        <div class="product-name"><a th:href="@{/product/{id}(id=${item.productId})}" th:text="${item.productNameSnapshot}" style="color: inherit; text-decoration: none;">Tên sản phẩm</a></div>
+                        <div class="product-variant"
+                             th:each="v : ${item.variants}"
+                             th:text="${v}" style="margin-bottom:0.15rem;">Màu / Size</div>
+                        <div class="product-variant"
+                             th:text="'Tổng: ' + ${item.totalQuantity} + ' SP · ' + ${#numbers.formatInteger(item.totalPrice,0,'COMMA')} + ' ₫'"
+                             style="margin-top:0.3rem; color:#2563eb; font-weight:600;">x1</div>
+                    </div>
+                </div>
+
+                <!-- Đã review -->
+                <div th:if="${reviewedProductIds.contains(item.productId)}"
+                     class="review-form">
+                    <span class="reviewed-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Đã đánh giá sản phẩm này
+                    </span>
+                </div>
+
+                <!-- Chưa review -->
+                <div th:if="${!reviewedProductIds.contains(item.productId)}"
+                     class="review-form"
+                     th:id="'form-' + ${item.productId}">
+
+                    <div class="review-label">Chất lượng sản phẩm</div>
+
+                    <!-- Stars -->
+                    <div class="stars" th:id="'stars-' + ${item.productId}">
+                        <input type="radio" th:id="'r5-'+${item.productId}" th:name="'r-'+${item.productId}" value="5">
+                        <label th:for="'r5-'+${item.productId}">&#9733;</label>
+                        <input type="radio" th:id="'r4-'+${item.productId}" th:name="'r-'+${item.productId}" value="4">
+                        <label th:for="'r4-'+${item.productId}">&#9733;</label>
+                        <input type="radio" th:id="'r3-'+${item.productId}" th:name="'r-'+${item.productId}" value="3" checked>
+                        <label th:for="'r3-'+${item.productId}">&#9733;</label>
+                        <input type="radio" th:id="'r2-'+${item.productId}" th:name="'r-'+${item.productId}" value="2">
+                        <label th:for="'r2-'+${item.productId}">&#9733;</label>
+                        <input type="radio" th:id="'r1-'+${item.productId}" th:name="'r-'+${item.productId}" value="1">
+                        <label th:for="'r1-'+${item.productId}">&#9733;</label>
+                    </div>
+
+                    <div class="review-label">Nhận xét của bạn</div>
+                    <textarea th:id="'cmt-'+${item.productId}"
+                              class="review-textarea"
+                              placeholder="Chia sẻ cảm nhận về chất lượng, kích thước, màu sắc..."></textarea>
+
+                    <button class="btn-submit-review"
+                            th:attr="data-pid=${item.productId}, data-oid=${order.orderId}"
+                            onclick="doReview(this)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                        Gửi đánh giá
+                    </button>
+                </div>
+
+            </div>
+        </th:block>
+
+        <!-- Khi tất cả items được review từ đơn cũ không có productId -->
+        <th:block th:if="${#lists.isEmpty(items) or (items.?[productId != null].isEmpty())}">
+            <div class="empty-hint">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin:0 auto 1rem;display:block;">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <p style="font-size:1rem;font-weight:600;color:#374151;margin:0 0 0.3rem;">Không có sản phẩm để đánh giá</p>
+                <p style="font-size:0.88rem;color:#6b7280;margin:0;">Đơn hàng cũ (đặt trước ngày cập nhật hệ thống) chưa lưu thông tin sản phẩm.</p>
+            </div>
+        </th:block>
+
+    </div>
+
+    <th:block th:replace="~{client/fragments/footer :: footer_fragment}"></th:block>
+
+    <script>
+        async function doReview(btn) {
+            const pid  = btn.dataset.pid;
+            const oid  = btn.dataset.oid;
+            const star = document.querySelector(`input[name="r-${pid}"]:checked`)?.value;
+            const cmt  = document.getElementById(`cmt-${pid}`).value.trim();
+
+            if (!star) { showToast('Vui lòng chọn số sao đánh giá', 'error'); return; }
+
+            const origHtml = btn.innerHTML;
+            btn.innerHTML  = 'Đang gửi...';
+            btn.disabled   = true;
+
+            try {
+                const res  = await fetch('/reviews/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId:   parseInt(oid),
+                        productId: parseInt(pid),
+                        rating:    parseInt(star),
+                        comment:   cmt
+                    })
+                });
+                const data = await res.json();
+
+                if (data.status === 'SUCCESS') {
+                    showToast('Cảm ơn bạn đã đánh giá!', 'success');
+                    const form = document.getElementById(`form-${pid}`);
+                    form.innerHTML = `
+                        <span class="reviewed-badge">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            Đã đánh giá sản phẩm này
+                        </span>`;
+                } else {
+                    showToast(data.message || 'Gửi đánh giá thất bại', 'error');
+                    btn.innerHTML = origHtml;
+                    btn.disabled  = false;
+                }
+            } catch {
+                showToast('Lỗi kết nối tới máy chủ', 'error');
+                btn.innerHTML = origHtml;
+                btn.disabled  = false;
+            }
+        }
+    </script>
+
+</body>
+</html>

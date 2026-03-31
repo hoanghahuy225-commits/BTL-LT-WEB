@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng của tôi - SportZone</title>
+    <link rel="stylesheet" href="/css/client/base.css">
+    <link rel="stylesheet" href="/css/client/header.css">
+    <link rel="stylesheet" href="/css/client/footer.css">
+    <style>
+        body { background: #f1f5f9; }
+
+        /* ===== PAGE WRAPPER ===== */
+        .orders-page {
+            max-width: 900px;
+            margin: 3rem auto 5rem;
+            padding: 0 1rem;
+        }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .page-header-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(37,99,235,0.3);
+        }
+        .page-header-icon svg { width: 26px; height: 26px; }
+        .page-header-text h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #111827;
+            margin: 0 0 0.2rem;
+        }
+        .page-header-text p {
+            color: #6b7280;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            background: #fff;
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+        .empty-icon {
+            width: 90px;
+            height: 90px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: #9ca3af;
+        }
+        .empty-icon svg { width: 44px; height: 44px; }
+        .empty-state h2 { font-size: 1.4rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem; }
+        .empty-state p { color: #6b7280; font-size: 0.95rem; margin-bottom: 2rem; }
+        .btn-shop {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: #fff;
+            font-weight: 600;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-shop:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(37,99,235,0.35); }
+
+        /* ===== ORDER CARD ===== */
+        .order-card {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .order-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.09); }
+
+        /* Card header */
+        .order-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            padding: 1.1rem 1.5rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .order-meta { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .order-code {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #2563eb;
+            letter-spacing: 0.5px;
+        }
+        .order-date {
+            font-size: 0.85rem;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .order-date svg { width: 14px; height: 14px; }
+
+        /* Status badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .badge-pending   { background: #fef3c7; color: #92400e; }
+        .badge-pending .badge-dot   { background: #f59e0b; }
+        .badge-confirmed { background: #dbeafe; color: #1e40af; }
+        .badge-confirmed .badge-dot { background: #3b82f6; }
+        .badge-shipping  { background: #e0e7ff; color: #3730a3; }
+        .badge-shipping .badge-dot  { background: #6366f1; }
+        .badge-delivered { background: #dcfce7; color: #166534; }
+        .badge-delivered .badge-dot { background: #22c55e; }
+        .badge-cancelled { background: #fee2e2; color: #991b1b; }
+        .badge-cancelled .badge-dot { background: #ef4444; }
+        .badge-paid      { background: #dcfce7; color: #166534; }
+        .badge-paid .badge-dot      { background: #22c55e; }
+        .badge-unpaid    { background: #fef3c7; color: #92400e; }
+        .badge-unpaid .badge-dot    { background: #f59e0b; }
+
+        /* ===== TABS ===== */
+        .order-tabs {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            scrollbar-width: thin;
+        }
+        .order-tabs::-webkit-scrollbar { height: 4px; }
+        .order-tabs::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .order-tab {
+            padding: 0.6rem 1.25rem;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4b5563;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .order-tab:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .order-tab.active { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 4px 10px rgba(37,99,235,0.2); }
+
+        /* Items list */
+        .order-items { padding: 1rem 1.5rem; }
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            gap: 1rem;
+        }
+        .order-item:last-child { border-bottom: none; }
+        .item-info { flex: 1; }
+        .item-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.2rem;
+        }
+        .item-variant {
+            font-size: 0.82rem;
+            color: #6b7280;
+        }
+        .item-qty-price {
+            text-align: right;
+            white-space: nowrap;
+        }
+        .item-qty { font-size: 0.82rem; color: #6b7280; margin-bottom: 0.2rem; }
+        .item-price { font-size: 0.95rem; font-weight: 700; color: #2563eb; }
+
+        /* Card footer */
+        .order-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
+            border-top: 1px solid #e5e7eb;
+        }
+        .order-shipping {
+            font-size: 0.83rem;
+            color: #6b7280;
+        }
+        .order-shipping strong { color: #374151; }
+        .order-total {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .order-total-label { font-size: 0.88rem; color: #6b7280; }
+        .order-total-value { font-size: 1.2rem; font-weight: 800; color: #dc2626; }
+
+        /* Payment method */
+        .payment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: #f3f4f6;
+            border-radius: 6px;
+            padding: 0.25rem 0.65rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        .payment-chip svg { width: 13px; height: 13px; }
+
+        /* Expand items button */
+        .toggle-items-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.82rem;
+            color: #2563eb;
+            font-weight: 600;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .toggle-items-btn svg { width: 15px; height: 15px; transition: transform 0.2s; }
+        .toggle-items-btn.open svg { transform: rotate(180deg); }
+        .order-items { transition: all 0.3s; }
+
+        .btn-detail {
+            display: inline-block;
+            padding: 0.45rem 1rem;
+            border: 1.5px solid #2563eb;
+            color: #2563eb;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-detail:hover {
+            background: #e0e7ff;
+        }
+
+        .btn-review-order {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 1rem;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(245,158,11,0.25);
+        }
+        .btn-review-order:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(245,158,11,0.4);
+            color: #fff;
+        }
+
+        .btn-reviewed-order {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 1rem;
+            background: #f3f4f6;
+            color: #4b5563;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-reviewed-order:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <th:block th:replace="~{client/fragments/header :: header_fragment}"></th:block>
+
+    <div class="orders-page">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                    <rect x="9" y="3" width="6" height="4" rx="2"/>
+                    <path d="M9 12h6M9 16h4"/>
+                </svg>
+            </div>
+            <div class="page-header-text">
+                <h1>Đơn hàng của tôi</h1>
+                <p th:if="${orders != null and !#lists.isEmpty(orders)}"
+                   th:text="'Bạn có ' + ${#lists.size(orders)} + ' đơn hàng'">Bạn có N đơn hàng</p>
+                <p th:if="${orders == null or #lists.isEmpty(orders)}">Chưa có đơn hàng nào</p>
+            </div>
+        </div>
+
+        <!-- Tabs Filter -->
+        <div class="order-tabs" th:if="${orders != null and !#lists.isEmpty(orders)}">
+            <button class="order-tab active" onclick="filterOrders('all', this)">Tất cả</button>
+            <button class="order-tab" onclick="filterOrders('Pending', this)">Chờ xác nhận</button>
+            <button class="order-tab" onclick="filterOrders('Confirmed', this)">Đã xác nhận</button>
+            <button class="order-tab" onclick="filterOrders('Shipping', this)">Đang giao hàng</button>
+            <button class="order-tab" onclick="filterOrders('Delivered', this)">Đã giao hàng</button>
+            <button class="order-tab" onclick="filterOrders('Cancelled', this)">Đã hủy</button>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" th:if="${orders == null or #lists.isEmpty(orders)}">
+            <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+            </div>
+            <h2>Chưa có đơn hàng nào</h2>
+            <p>Hãy khám phá và mua sắm các sản phẩm yêu thích của bạn!</p>
+            <a href="/" class="btn-shop">Mua sắm ngay</a>
+        </div>
+
+        <!-- Order Cards -->
+        <div id="order-list-container" th:if="${orders != null and !#lists.isEmpty(orders)}">
+            <div class="order-card" th:each="order : ${orders}" th:data-status="${order.orderStatus}">
+
+                <!-- Card Header -->
+                <div class="order-card-header">
+                    <div class="order-meta">
+                        <span class="order-code" th:text="'#' + ${order.orderCode}">DH2026031A1B2</span>
+                        <span class="order-date">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <span th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
+                        </span>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+                        
+                        <span th:with="s=${order.orderStatus}"
+                              th:classappend="${s == 'Pending'} ? 'badge-pending' : (${s == 'Confirmed'} ? 'badge-confirmed' : (${s == 'Shipping'} ? 'badge-shipping' : (${s == 'Delivered'} ? 'badge-delivered' : 'badge-cancelled')))"
+                              class="badge">
+                            <span class="badge-dot"></span>
+                            <span th:text="${s == 'Pending'} ? 'Chờ xác nhận' : (${s == 'Confirmed'} ? 'Đã xác nhận' : (${s == 'Shipping'} ? 'Đang giao hàng' : (${s == 'Delivered'} ? 'Đã giao hàng' : (${s == 'Cancelled'} ? 'Đã hủy' : ${s}))))">Trạng thái</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Items List -->
+                <div class="order-items" th:id="'items-' + ${order.orderId}">
+                    <div class="order-item" th:each="item : ${orderItemsMap.get(order.orderId)}">
+                        <div style="display: flex; gap: 1rem; flex: 1;">
+                            <div class="item-image" style="width: 60px; height: 60px; flex-shrink: 0; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; background: #f9fafb;">
+                                <a th:href="@{/product/{id}(id=${item.productId})}">
+                                    <img th:if="${item.productImage != null}" th:src="${item.productImage}" alt="Product" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <div th:unless="${item.productImage != null}" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #9ca3af;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="item-info">
+                                <div class="item-name"><a th:href="@{/product/{id}(id=${item.productId})}" th:text="${item.productNameSnapshot}" style="color: inherit; text-decoration: none;">Tên sản phẩm</a></div>
+                                <div class="item-variant" th:if="${item.variantSnapshot != null and !#strings.isEmpty(item.variantSnapshot)}"
+                                     th:text="${item.variantSnapshot}">Màu: Đỏ, Size: L</div>
+                            </div>
+                        </div>
+                        <div class="item-qty-price">
+                            <div class="item-qty" th:text="'x' + ${item.quantity}">x1</div>
+                            <div class="item-price" th:text="${#numbers.formatInteger(item.totalPrice, 0, 'COMMA') + ' ₫'}">0 ₫</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Footer -->
+                <div class="order-card-footer">
+                    <div>
+                        <div class="order-shipping">
+                            <strong>Giao đến: </strong>
+                            <span th:text="${order.shippingRecipientName} + ' - ' + ${order.shippingPhone}">Tên - SĐT</span>
+                        </div>
+                        <div class="order-shipping" style="margin-top:0.25rem;">
+                            <span th:text="${order.shippingAddressLine}
+                                + (${order.shippingWard != null and !#strings.isEmpty(order.shippingWard)} ? ', ' + ${order.shippingWard} : '')
+                                + ', ' + ${order.shippingCity}">Địa chỉ</span>
+                        </div>
+                        <div style="margin-top:0.4rem;display:flex;align-items:center;gap:0.5rem;">
+                            <span class="payment-chip">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+                                </svg>
+                                <span th:text="${order.paymentMethod == 'COD'} ? 'Thanh toán khi nhận hàng' : ${order.paymentMethod}">COD</span>
+                            </span>
+                            <span th:style="${order.paymentStatus == 'Paid' ? 'color:#16a34a; font-size:0.85rem; font-weight:600;' : 'color:#d97706; font-size:0.85rem; font-weight:600;'}"
+                                  th:text="${order.paymentStatus == 'Paid' ? '• Đã thanh toán' : '• Chưa thanh toán'}"></span>
+                        </div>
+                    </div>
+                    <div class="order-total" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.6rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="order-total-label">Tổng tiền:</span>
+                            <span class="order-total-value" th:text="${#numbers.formatInteger(order.finalAmount, 0, 'COMMA') + ' ₫'}">0 ₫</span>
+                        </div>
+                        <a th:href="@{'/orders/' + ${order.orderId}}" class="btn-detail">Xem chi tiết</a>
+                        <a th:if="${order.orderStatus == 'Delivered'}"
+                           th:href="@{'/reviews/order/' + ${order.orderId}}"
+                           th:class="${orderReviewedMap.get(order.orderId)} ? 'btn-reviewed-order' : 'btn-review-order'">
+                            <svg th:if="${!orderReviewedMap.get(order.orderId)}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            </svg>
+                            <svg th:if="${orderReviewedMap.get(order.orderId)}" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <span style="color: green" th:text="${orderReviewedMap.get(order.orderId)} ? 'Đã đánh giá / Xem lại' : 'Đánh giá sản phẩm'"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Empty State for Filters -->
+            <div id="filter-empty-state" style="display: none; text-align: center; padding: 3rem 1rem; background: #fff; border-radius: 18px; border: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
+                <svg style="width: 60px; height: 60px; color: #9ca3af; margin: 0 auto 1rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <h3 style="font-size: 1.1rem; color: #374151; margin-bottom: 0.5rem;">Không tìm thấy đơn hàng</h3>
+                <p style="color: #6b7280; font-size: 0.9rem;">Bạn không có đơn hàng nào ở trạng thái này.</p>
+            </div>
+        </div>
+
+        <!-- Back to shopping -->
+        <div style="text-align:center;margin-top:1.5rem;" th:if="${orders != null and !#lists.isEmpty(orders)}">
+            <a href="/" style="color:#6b7280;font-size:0.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:0.4rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                </svg>
+                Tiếp tục mua sắm
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <th:block th:replace="~{client/fragments/footer :: footer_fragment}"></th:block>
+
+    <script>
+        function filterOrders(status, btn) {
+            // Đổi style của tab
+            document.querySelectorAll('.order-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.order-card');
+            let visibleCount = 0;
+
+            // Lọc các thẻ hiển thị
+            cards.forEach(card => {
+                if (status === 'all' || card.dataset.status === status) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            const emptyState = document.getElementById('filter-empty-state');
+            if (emptyState) {
+                emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>

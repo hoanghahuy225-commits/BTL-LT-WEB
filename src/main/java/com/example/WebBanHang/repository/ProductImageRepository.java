@@ -12,5 +12,7 @@ public interface ProductImageRepository extends JpaRepository<ProductImage, Inte
     Optional<ProductImage> findFirstByProductIdAndColorId(Integer productId, Integer colorId);
 
     List<ProductImage> findAllByProductId(Integer productId);
+
+    void deleteAllByProductId(Integer productId);
 }
 

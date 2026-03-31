@@ -26,6 +26,9 @@ public class ProductReview {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
+    @Column(name = "order_id" , nullable =  false) 
+    private Integer orderId ;  
+
     @Column(name = "rating")
     private Integer rating;
 
@@ -35,4 +38,8 @@ public class ProductReview {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Transient
+    private String userName;
+
 }

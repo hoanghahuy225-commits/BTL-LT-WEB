@@ -3,106 +3,420 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Đăng nhập</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>Đăng nhập – ShopVN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             font-family: 'Inter', sans-serif;
             min-height: 100vh;
             display: flex;
+        }
+
+        /* ===== LEFT PANEL (FORM) ===== */
+        .left-panel {
+            width: 45%;
+            min-height: 100vh;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 56px;
+            position: relative;
+        }
+
+        .brand {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #3b5bff;
+            margin-bottom: 48px;
+            letter-spacing: -0.5px;
+        }
+        .brand span { color: #1a1a2e; }
+
+        .form-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1a1a2e;
+            line-height: 1.25;
+            margin-bottom: 8px;
+        }
+        .form-subtitle {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-bottom: 32px;
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #3b5bff;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 14px;
+        }
+        .section-label::before { content: "❖"; font-size: 1rem; }
+
+        .field-group {
+            border: 1.5px solid #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 22px;
+        }
+        .field-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+        }
+        .field-item:last-child { border-bottom: none; }
+        .field-item label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .field-item input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 0.95rem;
+            color: #111827;
+            font-family: 'Inter', sans-serif;
+            background: transparent;
+        }
+        .field-item input::placeholder { color: #9ca3af; }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            font-size: 0.85rem;
+        }
+        .remember-me {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #374151;
+            cursor: pointer;
+        }
+        .remember-me input[type="checkbox"] {
+            width: 16px; height: 16px;
+            accent-color: #3b5bff;
+            cursor: pointer;
+        }
+        .forgot-link {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .forgot-link:hover { color: #3b5bff; }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .btn-primary {
+            flex: 1;
+            padding: 14px;
+            background: #3b5bff;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-primary:hover { background: #2a47e8; transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 14px;
+            background: transparent;
+            color: #1a1a2e;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: border-color 0.2s, transform 0.1s;
+            font-family: 'Inter', sans-serif;
         }
-        .card {
-            background: #fff;
-            border-radius: 16px;
-            padding: 40px 36px;
+        .btn-secondary:hover { border-color: #3b5bff; color: #3b5bff; transform: translateY(-1px); }
+
+        .social-login {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        .social-link {
+            font-weight: 600;
+            color: #3b5bff;
+            text-decoration: none;
+        }
+        .social-link:hover { text-decoration: underline; }
+
+        /* ===== RIGHT PANEL (ILLUSTRATION) ===== */
+        .right-panel {
+            flex: 1;
+            background: #f4f5f9;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .right-nav {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 32px;
+            padding: 24px 40px;
+            font-size: 0.9rem;
+        }
+        .right-nav a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .right-nav a:hover { color: #3b5bff; }
+        .right-nav a.active {
+            color: #1a1a2e;
+            font-weight: 700;
+            border-bottom: 2px solid #1a1a2e;
+            padding-bottom: 2px;
+        }
+
+        .right-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 40px 60px;
+            text-align: center;
+        }
+
+        /* Shopping SVG Illustration */
+        .illustration-wrapper {
             width: 100%;
-            max-width: 420px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+            max-width: 380px;
+            margin-bottom: 36px;
+            animation: float 3.5s ease-in-out infinite;
         }
-        .card h2 { font-size: 1.75rem; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
-        .card .subtitle { font-size: 0.9rem; color: #6b7280; margin-bottom: 28px; }
-        .form-group { margin-bottom: 18px; }
-        label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 6px; }
-        input {
-            width: 100%; padding: 12px 14px;
-            border: 1.5px solid #e5e7eb; border-radius: 10px;
-            font-size: 0.95rem; color: #111827;
-            transition: border-color 0.2s; outline: none;
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-14px); }
         }
-        input:focus { border-color: #667eea; }
-        .btn {
-            width: 100%; padding: 13px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: #fff; border: none; border-radius: 10px;
-            font-size: 1rem; font-weight: 600; cursor: pointer;
-            margin-top: 6px; transition: opacity 0.2s, transform 0.1s;
+
+        .right-headline {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1a1a2e;
+            line-height: 1.3;
+            margin-bottom: 12px;
         }
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
-        /* Toast Notification Styles */
+        .right-headline span { color: #3b5bff; }
+
+        .right-sub {
+            font-size: 0.9rem;
+            color: #6b7280;
+            max-width: 300px;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            background: #3b5bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .home-btn:hover { background: #2a47e8; transform: translateY(-2px); }
+        .home-btn svg { width: 16px; height: 16px; }
+
+        /* ===== TOAST ===== */
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast {
             min-width: 280px; padding: 16px 20px; border-radius: 12px;
-            background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.12);
             display: flex; align-items: center; gap: 12px;
             transform: translateX(120%); opacity: 0;
             transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
         .toast.show { transform: translateX(0); opacity: 1; }
-        .toast-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; }
+        .toast-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0; font-size: 0.85rem; }
         .toast.error .toast-icon { background: #ef4444; }
         .toast.success .toast-icon { background: #22c55e; }
-        .toast-msg { font-size: 0.95rem; font-weight: 500; color: #1f2937; }
-        .footer-text { text-align: center; margin-top: 20px; font-size: 0.875rem; color: #6b7280; }
-        .footer-text a { color: #667eea; font-weight: 500; text-decoration: none; }
-        .footer-text a:hover { text-decoration: underline; }
+        .toast-msg { font-size: 0.9rem; font-weight: 500; color: #1f2937; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .left-panel { width: 100%; padding: 40px 24px; }
+            .right-panel { min-height: 300px; }
+            .right-content { padding: 20px 24px 40px; }
+            .right-headline { font-size: 1.3rem; }
+        }
     </style>
 </head>
 <body>
-    <!-- Toast Container (Góc phải màn hình) -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <div class="card">
-        <h2>Đăng nhập</h2>
-        <p class="subtitle">Chào mừng bạn quay lại 👋</p>
+    <!-- LEFT: FORM -->
+    <div class="left-panel">
+        <div class="brand">Sport<span>Shop</span></div>
+
+        <h1 class="form-title">Chào mừng trở lại!</h1>
+        <p class="form-subtitle">Đăng nhập để khám phá hàng nghìn sản phẩm ưu đãi hôm nay.</p>
+
+        <div class="section-label">Thông tin đăng nhập</div>
+
         <form id="loginForm">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="text" id="email" required />
+            <div class="field-group">
+                <div class="field-item">
+                    <label for="email">Email / Tên đăng nhập</label>
+                    <input type="text" id="email" placeholder="example@shopvn.com" required />
+                </div>
+                <div class="field-item">
+                    <label for="password">Mật khẩu</label>
+                    <input type="password" id="password" placeholder="••••••••••••" required />
+                </div>
             </div>
-            <div class="form-group">
-                <label for="password">Mật khẩu</label>
-                <input type="password" id="password" required />
+
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox" id="rememberMe" />
+                    Ghi nhớ đăng nhập
+                </label>
+                <a href="#" class="forgot-link">Quên mật khẩu?</a>
             </div>
-            <button type="submit" class="btn" id="submitBtn">Đăng nhập</button>
+
+            <div class="btn-row">
+                <button type="submit" class="btn-primary" id="submitBtn">Đăng nhập</button>
+                <a href="/register" class="btn-secondary">Đăng ký</a>
+            </div>
         </form>
-        <div class="footer-text">
-            Chưa có tài khoản? <a href="/register">Đăng ký ngay</a>
+    </div>
+
+    <!-- RIGHT: ILLUSTRATION -->
+    <div class="right-panel">
+        <nav class="right-nav">
+            <a href="/" class="active">Trang chủ</a>
+            <a href="/filter">Sản phẩm</a>
+            <a href="#">Khuyến mãi</a>
+            <a href="#">Liên hệ</a>
+        </nav>
+
+        <div class="right-content">
+            <!-- Shopping SVG Illustration -->
+            <div class="illustration-wrapper">
+                <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" fill="none">
+                    <!-- Background circles -->
+                    <circle cx="250" cy="200" r="170" fill="#e8ecff" opacity="0.5"/>
+                    <circle cx="250" cy="210" r="130" fill="#dde3ff" opacity="0.6"/>
+
+                    <!-- Shopping bag body -->
+                    <rect x="140" y="175" width="220" height="170" rx="18" fill="#3b5bff"/>
+                    <rect x="155" y="188" width="190" height="148" rx="14" fill="#2a47e8"/>
+
+                    <!-- Bag handle left -->
+                    <path d="M185 175 C185 140 215 120 250 120 C285 120 315 140 315 175" stroke="#1a1a2e" stroke-width="14" stroke-linecap="round" fill="none"/>
+
+                    <!-- Bag shine -->
+                    <rect x="170" y="198" width="55" height="8" rx="4" fill="white" opacity="0.2"/>
+
+                    <!-- Stars/sparkles around bag -->
+                    <circle cx="120" cy="155" r="6" fill="#fbbf24"/>
+                    <circle cx="380" cy="145" r="5" fill="#f472b6"/>
+                    <circle cx="390" cy="270" r="4" fill="#34d399"/>
+                    <circle cx="105" cy="300" r="5" fill="#60a5fa"/>
+
+                    <!-- Sparkle lines -->
+                    <line x1="120" y1="140" x2="120" y2="130" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="113" y1="147" x2="106" y2="147" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="380" y1="130" x2="380" y2="120" stroke="#f472b6" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="373" y1="137" x2="366" y2="137" stroke="#f472b6" stroke-width="2.5" stroke-linecap="round"/>
+
+                    <!-- Price tag -->
+                    <rect x="300" y="210" width="75" height="38" rx="10" fill="#fbbf24"/>
+                    <text x="337" y="233" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="13" fill="#1a1a2e">SALE!</text>
+
+                    <!-- Small product boxes inside bag area -->
+                    <rect x="185" y="230" width="50" height="50" rx="8" fill="white" opacity="0.15"/>
+                    <rect x="248" y="235" width="60" height="45" rx="8" fill="white" opacity="0.1"/>
+
+                    <!-- Coins / confetti -->
+                    <circle cx="155" cy="370" r="14" fill="#fbbf24" opacity="0.85"/>
+                    <circle cx="155" cy="370" r="9" fill="#f59e0b" opacity="0.5"/>
+                    <circle cx="345" cy="360" r="12" fill="#34d399" opacity="0.8"/>
+
+                    <!-- Arrow decoration -->
+                    <path d="M390 200 Q410 200 410 220 Q410 240 390 240" stroke="#3b5bff" stroke-width="3" stroke-dasharray="5 4" fill="none" opacity="0.5"/>
+                </svg>
+            </div>
+
+            <h2 class="right-headline">
+                Mua sắm thả ga,<br/>
+                <span>giá tốt mỗi ngày!</span>
+            </h2>
+            <p class="right-sub">
+                Hàng nghìn sản phẩm chính hãng đang chờ bạn. Ưu đãi độc quyền dành riêng cho thành viên đăng nhập.
+            </p>
+
+            <a href="/" class="home-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                Về trang chủ
+            </a>
         </div>
     </div>
 
     <script>
         const form = document.getElementById('loginForm');
         const submitBtn = document.getElementById('submitBtn');
+
         function showToast(msg, type) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            const iconContent = type === 'success' ? '✓' : '✗';
             toast.innerHTML = `
-                <div class="toast-icon">${iconContent}</div>
+                <div class="toast-icon">${type === 'success' ? '✓' : '✗'}</div>
                 <div class="toast-msg">${msg}</div>
             `;
-            
             container.appendChild(toast);
             requestAnimationFrame(() => toast.classList.add('show'));
             setTimeout(() => {
                 toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 400); 
+                setTimeout(() => toast.remove(), 400);
             }, 3500);
         }
 
@@ -124,7 +438,7 @@
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                
+
                 if (data.status === 'SUCCESS') {
                     showToast('Đăng nhập thành công! Đang chuyển hướng...', 'success');
                     sessionStorage.setItem('currentUser', JSON.stringify(data.data));

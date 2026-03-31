@@ -1,209 +1,260 @@
 
-<!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SportZone - Premium Sports Equipment</title>
-    <link rel="stylesheet" href="/css/client/base.css">
-    <link rel="stylesheet" href="/css/client/header.css">
-    <link rel="stylesheet" href="/css/client/footer.css">
-    <link rel="stylesheet" href="/css/client/toast.css">
-    <link rel="stylesheet" href="/css/client/index.css">
-  </head>
-  <body>
-    <!-- Header -->
-    <div th:replace="~{client/fragments/header :: header_fragment}"></div>
-
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="container">
-        <div class="hero-content">
-          <h2>Elevate Your<br><span>Athletic Performance</span></h2>
-          <p>Premium sports equipment and apparel for champions. Quality gear that moves with you.</p>
-          <div class="btn-group">
-            <button class="btn btn-primary">Shop Now</button>
-            <button class="btn btn-secondary">Learn More</button>
-          </div>
-        </div>
-        <div class="hero-image">
-          <img src="https://images.pexels.com/photos/2294361/pexels-photo-2294361.jpeg?auto=compress&cs=tinysrgb&w=1200" alt="Sports Equipment">
-        </div>
-      </div>
-    </section>
-
-    <!-- Features Section -->
-    
-
-    <section class="products" id="products">
-      <div class="container">
-        <div class="products-header">
-          <h2>Sản phẩm nổi bật</h2>
-        </div>
-        
-        <!-- Render Products List -->
-        <div class="products-grid">
-          <div class="product-card" th:each="product : ${products}">
-            <div class="product-image-wrapper">
-              <img th:src="${product.thumbnailUrl}" th:alt="${product.name}" class="product-image">
-              <span class = "product-badge"
-              th:if = "${product.salePrice != null}"
-              th:text="${'-' + #numbers.formatDecimal((product.basePrice - product.salePrice) * 100.0 / product.basePrice, 1, 0) + '%'}">
-              </span>
-              <button class="product-wishlist"
-                      th:classappend="${product.isWished} ? 'active' : ''"
-                      th:onclick="'event.stopPropagation(); addToWishlist(' + ${product.id} + ' , this )'"
-                      title="Add to wishlist">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-              </button>
-            </div>
-            <div 
-            th:onclick="|window.location.href='@{/product/{id}(id=${product.id})}'|" style="cursor: pointer;"
-            class="product-info">
-              <p class="product-category" th:text="${product.gender != null ? product.gender : 'Unisex'}">Danh mục</p>
-              <h3 class="product-name" th:text="${product.name}">Tên sản phẩm</h3>
-              
-              <div class="product-rating-sold" style="display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 0.85rem; color: #666;">
-                <span class="rating" style="display: flex; align-items: center; gap: 4px;">
-                  <span th:text="${product.average_rating != null ? product.average_rating : 0}">0</span>
-                  <svg style="width: 14px; height: 14px; fill: #fadb14; stroke: #fadb14;" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
-                </span>
-                <span style="width: 1px; height: 12px; background-color: #ddd;"></span>
-                <span class="sold-quantity" th:text="'Đã bán ' + ${product.sold_quantity != null ? product.sold_quantity : 0}">Đã bán 0</span>
-              </div>
-              
-              <div class="sale-countdown-wrapper" th:if="${product.saleEnd != null and product.salePrice != null}">
-              </div>
-              <div class="product-footer">
-                  <span class="product-price" th:text="${product.salePrice != null ? #numbers.formatDecimal(product.salePrice, 0, 'COMMA', 0, 'POINT') + 'đ' : #numbers.formatDecimal(product.basePrice, 0, 'COMMA', 0, 'POINT') + 'đ'}">0đ</span>
+  <!doctype html>
+  <html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>SportZone - Premium Sports Equipment</title>
+      <link rel="stylesheet" href="/css/client/base.css">
+      <link rel="stylesheet" href="/css/client/header.css">
+      <link rel="stylesheet" href="/css/client/footer.css">
+      <link rel="stylesheet" href="/css/client/toast.css">
+      <link rel="stylesheet" href="/css/client/index.css">
       
-                <span class="original-price" 
-                      th:if="${product.salePrice != null}" 
-                      th:text="${#numbers.formatDecimal(product.basePrice, 0, 'COMMA', 0, 'POINT') + 'đ'}">
-                  0đ
+      <style>
+    /* Override sticky → fixed, chỉ trang index */
+    body.page-index header {
+      position: fixed !important;   /* override sticky */
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+
+      /* Ẩn ban đầu */
+      transform: translateY(-100%);
+      opacity: 0;
+      transition: transform 0.4s ease, opacity 0.4s ease;
+
+      /* Frosted glass */
+      background: rgba(255, 255, 255, 0.85) !important;
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Hiện header khi scroll */
+    body.page-index header.scrolled {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Bù lại khoảng trống vì header fixed */
+    body.page-index .hero {
+      margin-top: 0;   /* hero bắt đầu từ đầu trang, header nổi lên trên */
+    }
+  </style>
+    </head>
+    
+    <body>
+      <!-- Header -->
+      <div th:replace="~{client/fragments/header :: header_fragment}"></div>
+
+      <!-- Hero Section -->
+      <section class="hero">
+        <!-- Background Video -->
+        <video class="hero-video-bg" autoplay loop muted playsinline>
+          <source th:src="@{/video/Sports_Commercial_Keyframes_In_a_cinematic_style_text_appears_on_screen_wbmL2-cQ.mp4}" type="video/mp4">
+          Trình duyệt của bạn không hỗ trợ thẻ video.
+        </video>
+        <!-- Dark Overlay -->
+        <!-- <div class="hero-overlay"></div>
+
+        <div class="container">
+          <div class="hero-content">
+            <h2>Elevate Your<br><span>Athletic Performance</span></h2>
+            <p>Premium sports equipment and apparel for champions. Quality gear that moves with you.</p>
+            <div class="btn-group">
+              <button class="btn btn-primary">Shop Now</button>
+              <button class="btn btn-secondary">Learn More</button>
+            </div>
+          </div>
+        </div> -->
+      </section>
+
+      <!-- Features Section -->
+      
+
+      <section class="products" id="products">
+        <div class="container">
+          <div class="products-header">
+            <h2>Sản phẩm nổi bật</h2>
+          </div>
+          
+          <!-- Render Products List -->
+          <div class="products-grid">
+            <div class="product-card" th:each="product : ${products}">
+              <div class="product-image-wrapper">
+                <img th:src="${product.thumbnailUrl}" th:alt="${product.name}" class="product-image">
+                <span class = "product-badge"
+                th:if = "${product.salePrice != null}"
+                th:text="${'-' + #numbers.formatDecimal((product.basePrice - product.salePrice) * 100.0 / product.basePrice, 1, 0) + '%'}">
                 </span>
+                <button class="product-wishlist"
+                        th:classappend="${product.isWished} ? 'active' : ''"
+                        th:onclick="'event.stopPropagation(); addToWishlist(' + ${product.id} + ' , this )'"
+                        title="Add to wishlist">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </button>
+              </div>
+              <div 
+              th:onclick="|window.location.href='@{/product/{id}(id=${product.id})}'|" style="cursor: pointer;"
+              class="product-info">
+                <p class="product-category" th:text="${product.gender != null ? product.gender : 'Unisex'}">Danh mục</p>
+                <h3 class="product-name" th:text="${product.name}">Tên sản phẩm</h3>
                 
+                <div class="product-rating-sold" style="display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 0.85rem; color: #666;">
+                  <span class="rating" style="display: flex; align-items: center; gap: 4px;">
+                    <span th:text="${product.average_rating != null ? product.average_rating : 0}">0</span>
+                    <svg style="width: 14px; height: 14px; fill: #fadb14; stroke: #fadb14;" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                  </span>
+                  <span style="width: 1px; height: 12px; background-color: #ddd;"></span>
+                  <span class="sold-quantity" th:text="'Đã bán ' + ${product.sold_quantity != null ? product.sold_quantity : 0}">Đã bán 0</span>
+                </div>
+                
+                <div class="sale-countdown-wrapper" th:if="${product.saleEnd != null and product.salePrice != null}">
+                </div>
+                <div class="product-footer">
+                    <span class="product-price" th:text="${product.salePrice != null ? #numbers.formatDecimal(product.salePrice, 0, 'COMMA', 0, 'POINT') + 'đ' : #numbers.formatDecimal(product.basePrice, 0, 'COMMA', 0, 'POINT') + 'đ'}">0đ</span>
+        
+                  <span class="original-price" 
+                        th:if="${product.salePrice != null}" 
+                        th:text="${#numbers.formatDecimal(product.basePrice, 0, 'COMMA', 0, 'POINT') + 'đ'}">
+                    0đ
+                  </span>
+                  
+                </div>
               </div>
             </div>
           </div>
+
+          <!-- Pagination Controls -->
+          <div th:if="${totalPages > 1}" class="pagination-container" style="margin-top: 3rem; display: flex; justify-content: center; gap: 0.5rem;">
+            <!-- Nút Previous -->
+            <a th:if="${currentPage > 0}" th:href="@{/(page=${currentPage - 1})}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Trang trước</a>
+            <span th:if="${currentPage == 0}" class="btn btn-secondary" style="padding: 0.5rem 1rem; opacity: 0.5; cursor: not-allowed;">Trang trước</span>
+            
+            <!-- Các trang -->
+            <span style="display: flex; align-items: center; padding: 0 1rem; font-weight: bold; color: var(--gray-700);">
+              Trang <span th:text="${currentPage + 1}" style="margin: 0 0.25rem; color: var(--primary-blue);">1</span> / <span th:text="${totalPages}" style="margin: 0 0.25rem;">1</span>
+            </span>
+            
+            <!-- Nút Next -->
+            <a th:if="${currentPage < totalPages - 1}" th:href="@{/(page=${currentPage + 1})}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Trang tiếp</a>
+            <span th:if="${currentPage >= totalPages - 1}" class="btn btn-secondary" style="padding: 0.5rem 1rem; opacity: 0.5; cursor: not-allowed;">Trang tiếp</span>
+          </div>
         </div>
+      </section>
 
-        <!-- Pagination Controls -->
-        <div th:if="${totalPages > 1}" class="pagination-container" style="margin-top: 3rem; display: flex; justify-content: center; gap: 0.5rem;">
-          <!-- Nút Previous -->
-          <a th:if="${currentPage > 0}" th:href="@{/(page=${currentPage - 1})}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Trang trước</a>
-          <span th:if="${currentPage == 0}" class="btn btn-secondary" style="padding: 0.5rem 1rem; opacity: 0.5; cursor: not-allowed;">Trang trước</span>
-          
-          <!-- Các trang -->
-          <span style="display: flex; align-items: center; padding: 0 1rem; font-weight: bold; color: var(--gray-700);">
-            Trang <span th:text="${currentPage + 1}" style="margin: 0 0.25rem; color: var(--primary-blue);">1</span> / <span th:text="${totalPages}" style="margin: 0 0.25rem;">1</span>
-          </span>
-          
-          <!-- Nút Next -->
-          <a th:if="${currentPage < totalPages - 1}" th:href="@{/(page=${currentPage + 1})}" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Trang tiếp</a>
-          <span th:if="${currentPage >= totalPages - 1}" class="btn btn-secondary" style="padding: 0.5rem 1rem; opacity: 0.5; cursor: not-allowed;">Trang tiếp</span>
+      <!-- Newsletter Section -->
+      <section class="newsletter">
+        <div class="container">
+          <h2>Join Our Community</h2>
+          <p>Subscribe for exclusive offers and fitness tips</p>
+          <form class="newsletter-form" onsubmit="return false;">
+            <input type="email" class="newsletter-input" placeholder="Enter your email" required>
+            <button type="submit" class="newsletter-btn">Subscribe</button>
+          </form>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Newsletter Section -->
-    <section class="newsletter">
-      <div class="container">
-        <h2>Join Our Community</h2>
-        <p>Subscribe for exclusive offers and fitness tips</p>
-        <form class="newsletter-form" onsubmit="return false;">
-          <input type="email" class="newsletter-input" placeholder="Enter your email" required>
-          <button type="submit" class="newsletter-btn">Subscribe</button>
-        </form>
-      </div>
-    </section>
+      <!-- Footer -->
+      <div th:replace="~{client/fragments/footer :: footer_fragment}"></div>
 
-    <!-- Footer -->
-    <div th:replace="~{client/fragments/footer :: footer_fragment}"></div>
+      <script>
+        document.body.classList.add('page-index');
 
-    <script>
-      let cartCount = 0;
+        const header = document.querySelector('header')
+                    
 
-      function addToCart(productId) {
-        cartCount++;
-        updateCartBadge();
+        window.addEventListener('scroll', () => {
+          if (window.scrollY > 80) {
+            header?.classList.add('scrolled');
+          } else {
+            header?.classList.remove('scrolled');
+          }
+        }, { passive: true });
+        let cartCount = 0;
 
-        const btn = event.target;
-        if (btn) {
-          btn.textContent = 'Added!';
-          btn.style.opacity = '0.7';
-          setTimeout(() => {
-            btn.textContent = 'Add to Cart';
-            btn.style.opacity = '1';
-          }, 1500);
+        function addToCart(productId) {
+          cartCount++;
+          updateCartBadge();
+
+          const btn = event.target;
+          if (btn) {
+            btn.textContent = 'Added!';
+            btn.style.opacity = '0.7';
+            setTimeout(() => {
+              btn.textContent = 'Add to Cart';
+              btn.style.opacity = '1';
+            }, 1500);
+          }
         }
-      }
 
-      function updateCartBadge() {
-        const badge = document.getElementById('cart-count');
-        badge.textContent = cartCount;
-        badge.style.display = cartCount > 0 ? 'flex' : 'none';
-      }
+        function updateCartBadge() {
+          const badge = document.getElementById('cart-count');
+          badge.textContent = cartCount;
+          badge.style.display = cartCount > 0 ? 'flex' : 'none';
+        }
 
+        
+        async function addToWishlist(productId , btnElement) {
+        console.log("Đã add sản phẩm vào wishlist: " +  productId); 
+        const svgIcon = btnElement.querySelector('svg');  
+        const isWished = btnElement.classList.toggle('active');
+        let userId = null;
+        try {
+            userId = JSON.parse(sessionStorage.getItem('currentUser')).id;
+        } catch (e) {
+            showToast('Vui lòng đăng nhập để thao tác với wishlist', 'error');
+          setTimeout(() => window.location.href = '/login', 1500);
+            return;
+        }
+
+        if(isWished){
+
+
+
+        
+
+          const res = await fetch('/wishlist/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: userId,
+              productId: productId
+            })
+          });
+          const data = await res.json();
+          if (data.status === 'SUCCESS') {
+            showToast('Thêm vào wishlist thành công', 'success');
+          } else {
+            showToast('Thêm vào wishlist thất bại: ' + (data.message || 'Lỗi không xác định'), 'error');
+          }
+        }else{
+
+          const res = await fetch('/wishlist/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: userId,
+              productId: productId
+            })
+          });
+          const data = await res.json();
+          if (data.status === 'SUCCESS') {
+            showToast('Đã xóa khỏi wishlist', 'success');
+          } else {
+            showToast('Xóa khỏi wishlist thất bại: ' + (data.message || 'Lỗi không xác định'), 'error');
+          }
+        } 
+        } 
       
-      async function addToWishlist(productId , btnElement) {
-      console.log("Đã add sản phẩm vào wishlist: " +  productId); 
-      const svgIcon = btnElement.querySelector('svg');  
-      const isWished = btnElement.classList.toggle('active');
-      let userId = null;
-      try {
-          userId = JSON.parse(sessionStorage.getItem('currentUser')).id;
-      } catch (e) {
-          showToast('Vui lòng đăng nhập để thao tác với wishlist', 'error');
-        setTimeout(() => window.location.href = '/login', 1500);
-          return;
-      }
 
-      if(isWished){
-
-
-
-       
-
-        const res = await fetch('/wishlist/add', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: userId,
-            productId: productId
-          })
-        });
-        const data = await res.json();
-        if (data.status === 'SUCCESS') {
-          showToast('Thêm vào wishlist thành công', 'success');
-        } else {
-          showToast('Thêm vào wishlist thất bại: ' + (data.message || 'Lỗi không xác định'), 'error');
-        }
-      }else{
-
-        const res = await fetch('/wishlist/remove', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: userId,
-            productId: productId
-          })
-        });
-        const data = await res.json();
-        if (data.status === 'SUCCESS') {
-          showToast('Đã xóa khỏi wishlist', 'success');
-        } else {
-          showToast('Xóa khỏi wishlist thất bại: ' + (data.message || 'Lỗi không xác định'), 'error');
-        }
-      } 
-      } 
-    
-
+        
+      </script>
       
-     
-    </script>
-    
-  </body>
-</html>
+    </body>
+  </html>

@@ -3,6 +3,7 @@ package com.example.WebBanHang.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -71,10 +72,20 @@ public class ProductVariantService {
                 return ResponseEntity.badRequest().body(new ApiResponse<>( "ERROR", "Lỗi Server", null)); 
             }
          }
-         public void updateStockQuantity(Integer variantId, int quantity) {
+
+         public java.util.Optional<ProductVariant> getVariantById(Integer id) {
+            return productVariantRepository.findById(id);
+         }
+
+         public void updateStockQuantity(Integer variantId, int quantity , String type ) {
+            if (variantId == null) return;
             ProductVariant variant = productVariantRepository.findById(variantId).orElse(null);
             if (variant != null) {
-                variant.setStockQuantity(variant.getStockQuantity() - quantity);
+                if(type.equals("add")) {
+                    variant.setStockQuantity(variant.getStockQuantity() + quantity);
+                } else if(type.equals("subtract")) {
+                    variant.setStockQuantity(variant.getStockQuantity() - quantity);
+                }
                 productVariantRepository.save(variant);
             }
          } 

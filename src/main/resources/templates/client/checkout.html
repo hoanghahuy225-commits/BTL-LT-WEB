@@ -393,18 +393,20 @@
                     <div class="panel-body">
                         <div th:each="item : ${items}" class="order-item">
                             <!-- Ảnh -->
-                            <img th:if="${item.thumbnailUrl != null}"
-                                 th:src="${item.thumbnailUrl}"
-                                 th:alt="${item.productName}"
-                                 class="order-item-img" />
-                            <div th:if="${item.thumbnailUrl == null}" class="order-item-img-placeholder">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                    <rect x="3" y="3" width="18" height="18" rx="4"/><path d="M3 9h18M9 21V9"/>
-                                </svg>
-                            </div>
+                            <a th:href="@{/product/{id}(id=${item.productId})}">
+                                <img th:if="${item.thumbnailUrl != null}"
+                                     th:src="${item.thumbnailUrl}"
+                                     th:alt="${item.productName}"
+                                     class="order-item-img" />
+                                <div th:if="${item.thumbnailUrl == null}" class="order-item-img-placeholder">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <rect x="3" y="3" width="18" height="18" rx="4"/><path d="M3 9h18M9 21V9"/>
+                                    </svg>
+                                </div>
+                            </a>
                             <!-- Info -->
                             <div class="order-item-info">
-                                <div class="order-item-name" th:text="${item.productName}">Tên sản phẩm</div>
+                                <div class="order-item-name"><a th:href="@{/product/{id}(id=${item.productId})}" th:text="${item.productName}" style="color: inherit; text-decoration: none;">Tên sản phẩm</a></div>
                                 <div class="order-item-badges">
                                     <span class="badge-color" th:if="${item.colorName != null}">
                                         <span th:if="${item.colorCode != null}"
@@ -857,7 +859,7 @@
                 } 
                 console.log(payload );
         try {
-            const res = await fetch("/order/add", {
+            const res = await fetch("/orders/add", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -869,7 +871,7 @@
             if (res.ok) {
                 const data = await res.json();
                 showToast('Đặt hàng thành công! Cảm ơn bạn đã mua hàng 🎉', 'success');
-                setTimeout(() => window.location.href = `/order/success?orderCode=${data.orderCode}`, 2000); // Redirect to success page
+                setTimeout(() => window.location.href = `/orders/success?orderCode=${data.orderCode}`, 2000); // Redirect to success page
             } else {
                 showToast('Có lỗi xảy ra khi tạo đơn hàng, vui lòng thử lại!', 'error');
             }

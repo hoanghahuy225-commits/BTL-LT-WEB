@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết đơn hàng - SportZone</title>
+    <link rel="stylesheet" href="/css/client/base.css">
+    <link rel="stylesheet" href="/css/client/header.css">
+    <link rel="stylesheet" href="/css/client/footer.css">
+    <link rel="stylesheet" href="/css/client/toast.css">
+    <style>
+        body { background: #f8fafc; }
+        .page-container { max-width: 900px; margin: 2rem auto 4rem; padding: 0 1.5rem; }
+        .breadcrumb { display: flex; gap: 0.5rem; color: #6b7280; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .breadcrumb a { color: #2563eb; text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .card { background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .card-title { font-size: 1.15rem; font-weight: 700; color: #111827; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .info-row { display: flex; margin-bottom: 0.6rem; font-size: 0.95rem; }
+        .info-label { width: 140px; color: #6b7280; }
+        .info-value { flex: 1; font-weight: 500; color: #374151; }
+        .item-list { display: flex; flex-direction: column; gap: 1rem; }
+        .item { display: flex; gap: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid #f1f5f9; }
+        .item:last-child { border-bottom: none; padding-bottom: 0; }
+        .item-img { width: 72px; height: 72px; border-radius: 8px; object-fit: cover; border: 1px solid #e5e7eb; }
+        .item-details { flex: 1; }
+        .item-name { font-weight: 600; color: #111827; margin-bottom: 0.25rem; }
+        .item-meta { font-size: 0.85rem; color: #6b7280; }
+        .item-price-wrap { text-align: right; }
+        .summary-box { width: 100%; max-width: 320px; margin-left: auto; margin-top: 1rem; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.6rem; color: #6b7280; font-size: 0.95rem; }
+        .summary-row.total { font-size: 1.2rem; font-weight: 800; color: #dc2626; border-top: 1px solid #e5e7eb; padding-top: 0.75rem; margin-top: 0.5rem; }
+        .btn-cancel { padding: 0.6rem 1.2rem; background: #fee2e2; color: #dc2626; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; gap: 0.4rem; }
+        .btn-cancel:hover { background: #fca5a5; }
+        .badge { display: inline-block; padding: 0.35rem 0.8rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-Pending { background: #fef3c7; color: #d97706; }
+        .badge-Confirmed { background: #dbeafe; color: #2563eb; }
+        .badge-Shipping { background: #e0e7ff; color: #4f46e5; }
+        .badge-Delivered { background: #dcfce7; color: #16a34a; }
+        .badge-Cancelled { background: #fee2e2; color: #dc2626; }
+
+        /* ── Review ── */
+        .btn-review {
+            margin-top: 0.6rem; padding: 0.4rem 1rem;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff; border: none; border-radius: 8px;
+            font-size: 0.82rem; font-weight: 600; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            transition: opacity .2s;
+        }
+        .btn-review:hover { opacity: .85; }
+        .btn-reviewed {
+            margin-top: 0.6rem; padding: 0.4rem 1rem;
+            background: #f3f4f6; color: #6b7280;
+            border: 1.5px solid #e5e7eb; border-radius: 8px;
+            font-size: 0.82rem; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            cursor: default;
+        }
+        /* ── Star Rating ── */
+        .star-group { display: flex; gap: 6px; justify-content: center; margin-bottom: 16px; flex-direction: row-reverse; }
+        .star-group input { display: none; }
+        .star-group label {
+            font-size: 2rem; cursor: pointer; color: #d1d5db;
+            transition: color .15s;
+        }
+        .star-group input:checked ~ label,
+        .star-group label:hover,
+        .star-group label:hover ~ label { color: #f59e0b; }
+        /* Review modal box */
+        #review-overlay {
+            display: none; position: fixed; inset: 0; z-index: 99999;
+            background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        #review-box {
+            background: #fff; border-radius: 20px; padding: 32px;
+            width: 90%; max-width: 440px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+            transform: scale(0.88); opacity: 0;
+            transition: transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .review-product-name {
+            font-size: 1rem; font-weight: 700; color: #111827;
+            text-align: center; margin-bottom: 16px;
+        }
+        .review-textarea {
+            width: 100%; min-height: 90px; border: 1.5px solid #e5e7eb;
+            border-radius: 10px; padding: 10px 12px; font-size: 0.9rem;
+            resize: vertical; font-family: inherit; color: #374151;
+            box-sizing: border-box;
+        }
+        .review-textarea:focus { outline: none; border-color: #f59e0b; }
+        .review-actions { display: flex; gap: 10px; margin-top: 18px; }
+        .btn-review-cancel {
+            flex: 1; padding: 11px; border-radius: 10px;
+            border: 1.5px solid #e5e7eb; background: #fff;
+            font-size: .9rem; font-weight: 600; color: #374151; cursor: pointer;
+        }
+        .btn-review-submit {
+            flex: 1; padding: 11px; border-radius: 10px;
+            border: none; background: linear-gradient(135deg, #f59e0b, #d97706);
+            font-size: .9rem; font-weight: 600; color: #fff; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <th:block th:replace="~{client/fragments/header :: header_fragment}"></th:block>
+    <th:block th:replace="~{client/fragments/confirm-modal :: confirm_modal}"></th:block>
+
+    <div class="page-container">
+        <div class="breadcrumb">
+            <a href="/">Trang chủ</a> / <a href="/orders">Đơn hàng của tôi</a> / <span th:text="${order.orderCode}"></span>
+        </div>
+
+        <!-- Trạng thái và thao tác -->
+        <div class="card">
+            <div class="card-title">
+                <span>Thông tin đơn hàng <span th:text="'#' + ${order.orderCode}" style="color: #2563eb;"></span></span>
+                <span th:class="'badge badge-' + ${order.orderStatus}" 
+                      th:text="${order.orderStatus == 'Pending' ? 'Chờ xác nhận' : (order.orderStatus == 'Confirmed' ? 'Đã xác nhận' : (order.orderStatus == 'Shipping' ? 'Đang giao' : (order.orderStatus == 'Delivered' ? 'Đã giao' : 'Đã hủy')))}">
+                </span>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Ngày đặt hàng:</div>
+                <div class="info-value" th:text="${#temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm')}"></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Thanh toán:</div>
+                <div class="info-value">
+                    <span th:text="${order.paymentMethod == 'COD' ? 'Thanh toán khi nhận hàng (COD)' : order.paymentMethod}"></span>
+                    - <span th:text="${order.paymentStatus == 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}" 
+                            th:style="${order.paymentStatus == 'Paid' ? 'color: #16a34a;' : 'color: #d97706;'}"></span>
+                </div>
+            </div>
+            <div class="info-row" th:if="${order.note != null and !order.note.trim().isEmpty()}">
+                <div class="info-label">Ghi chú:</div>
+                <div class="info-value" th:text="${order.note}"></div>
+            </div>
+            
+            <!-- Nút Hủy Đơn Hàng (Chỉ hiển thị khi trạng thái là Pending) -->
+            <div th:if="${order.orderStatus == 'Pending'}" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #f1f5f9; text-align: right;">
+                <button class="btn-cancel"
+                        th:attr="data-order-id=${order.orderId}, data-order-code=${order.orderCode}"
+                        onclick="handleCancelClick(this)">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    Hủy đơn hàng
+                </button>
+            </div>
+        </div>
+
+        <!-- Thông tin giao hàng -->
+        <div class="card">
+            <div class="card-title">Địa chỉ nhận hàng</div>
+            <div class="info-row">
+                <div class="info-label">Người nhận:</div>
+                <div class="info-value" th:text="${order.shippingRecipientName}"></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Số điện thoại:</div>
+                <div class="info-value" th:text="${order.shippingPhone}"></div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Địa chỉ:</div>
+                <div class="info-value" th:text="${order.shippingAddressLine} + (${order.shippingWard != null ? ', ' + order.shippingWard : ''}) + ', ' + ${order.shippingCity}"></div>
+            </div>
+        </div>
+
+        <!-- Danh sách sản phẩm -->
+        <div class="card">
+            <div class="card-title">Sản phẩm đã đặt</div>
+            <div class="item-list">
+                <div class="item" th:each="item : ${items}">
+                    <a th:href="@{/product/{id}(id=${item.productId})}">
+                        <img th:src="${item.productImage != null ? item.productImage : 'https://placehold.co/80'}" class="item-img" alt="Product">
+                    </a>
+                    <div class="item-details">
+                        <div class="item-name"><a th:href="@{/product/{id}(id=${item.productId})}" th:text="${item.productNameSnapshot}" style="color: inherit; text-decoration: none;"></a></div>
+                        <div class="item-meta" th:if="${item.variantSnapshot != null}" th:text="${item.variantSnapshot}"></div>
+                        <div class="item-meta" style="margin-top: 0.3rem;">Số lượng: <span style="color: #111827; font-weight: 600;" th:text="'x' + ${item.quantity}"></span></div>
+
+                        <!-- Nút đánh giá: chỉ hiện khi Delivered và có productId -->
+                        <div th:if="${order.orderStatus == 'Delivered' and item.productId != null}">
+                            <!-- Đã đánh giá -->
+                            <span th:if="${reviewedProductIds.contains(item.productId)}"
+                                  class="btn-reviewed">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                Đã đánh giá
+                            </span>
+                            <!-- Chưa đánh giá -->
+                            <button th:if="${!reviewedProductIds.contains(item.productId)}"
+                                    class="btn-review"
+                                    th:attr="data-product-id=${item.productId}, data-product-name=${item.productNameSnapshot}, data-order-id=${order.orderId}"
+                                    onclick="openReviewModal(this)">
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                Đánh giá
+                            </button>
+                        </div>
+                    </div>
+                    <div class="item-price-wrap">
+                        <div style="font-weight: 700; color: #2563eb;" th:text="${#numbers.formatInteger(item.totalPrice, 0, 'COMMA')} + ' ₫'"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tổng kết tiền -->
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>Tạm tính</span>
+                    <span th:text="${#numbers.formatInteger(order.totalAmount, 0, 'COMMA')} + ' ₫'"></span>
+                </div>
+                <div class="summary-row">
+                    <span>Phí vận chuyển</span>
+                    <span th:text="${#numbers.formatInteger(order.shippingFee, 0, 'COMMA')} + ' ₫'"></span>
+                </div>
+                <div class="summary-row total">
+                    <span>Tổng cộng</span>
+                    <span th:text="${#numbers.formatInteger(order.finalAmount, 0, 'COMMA')} + ' ₫'"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block th:replace="~{client/fragments/footer :: footer_fragment}"></th:block>
+
+    <!-- ── Review Modal ── -->
+    <div id="review-overlay" style="display:none; position:fixed; inset:0; z-index:99999;
+         background:rgba(0,0,0,0.45); backdrop-filter:blur(4px);
+         align-items:center; justify-content:center;">
+        <div id="review-box">
+            <p style="font-size:0.85rem; color:#6b7280; text-align:center; margin-bottom:8px;">Đánh giá sản phẩm</p>
+            <p id="review-product-name" class="review-product-name"></p>
+            <!-- Sao -->
+            <div class="star-group">
+                <input type="radio" id="star5" name="rating" value="5"><label for="star5">&#9733;</label>
+                <input type="radio" id="star4" name="rating" value="4"><label for="star4">&#9733;</label>
+                <input type="radio" id="star3" name="rating" value="3" checked><label for="star3">&#9733;</label>
+                <input type="radio" id="star2" name="rating" value="2"><label for="star2">&#9733;</label>
+                <input type="radio" id="star1" name="rating" value="1"><label for="star1">&#9733;</label>
+            </div>
+            <!-- Bình luận -->
+            <textarea id="review-comment" class="review-textarea"
+                      placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+            <div class="review-actions">
+                <button class="btn-review-cancel" onclick="closeReviewModal()">Hủy</button>
+                <button class="btn-review-submit" onclick="submitReview()">
+                    <span id="review-submit-text">Gửi đánh giá</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleCancelClick(btn) {
+            const orderId   = btn.dataset.orderId;
+            const orderCode = btn.dataset.orderCode;
+
+            showConfirm({
+                title:       'Hủy đơn hàng #' + orderCode + '?',
+                message:     'Bạn có chắc chắn muốn hủy đơn hàng này không? Thao tác này không thể hoàn tác.',
+                type:        'warning',
+                confirmText: 'Xác nhận hủy',
+                backText:    'Giữ đơn',
+                data:        { orderId },
+                onConfirm:   async ({ orderId }) => {
+                    try {
+                        const res  = await fetch(`/orders/${orderId}/cancel`, { method: 'POST' });
+                        const data = await res.json();
+
+                        if (data.status === 'SUCCESS') {
+                            showToast('Đã hủy đơn hàng thành công', 'success');
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            showToast(data.message || 'Lỗi khi hủy đơn', 'error');
+                        }
+                    } catch (err) {
+                        showToast('Lỗi kết nối tới máy chủ', 'error');
+                    }
+                }
+            });
+        }
+
+        // ── Review Modal ──
+        let _reviewProductId = null;
+        let _reviewOrderId   = null;
+        let _reviewBtn       = null;
+
+        function openReviewModal(btn) {
+            _reviewProductId = btn.dataset.productId;
+            _reviewOrderId   = btn.dataset.orderId;
+            _reviewBtn       = btn;
+
+            document.getElementById('review-product-name').textContent = btn.dataset.productName;
+            document.getElementById('review-comment').value = '';
+            document.querySelector('input[name="rating"][value="3"]').checked = true;
+            document.getElementById('review-submit-text').textContent = 'Gửi đánh giá';
+
+            const overlay = document.getElementById('review-overlay');
+            overlay.style.display = 'flex';
+            // Animate in
+            requestAnimationFrame(() => {
+                const box = document.getElementById('review-box');
+                box.style.transform = 'scale(1)';
+                box.style.opacity   = '1';
+            });
+        }
+
+        function closeReviewModal() {
+            const overlay = document.getElementById('review-overlay');
+            const box     = document.getElementById('review-box');
+            box.style.transform = 'scale(0.88)';
+            box.style.opacity   = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 220);
+        }
+
+        async function submitReview() {
+            const rating  = document.querySelector('input[name="rating"]:checked')?.value;
+            const comment = document.getElementById('review-comment').value.trim();
+
+            if (!rating) { showToast('Vui lòng chọn số sao', 'error'); return; }
+
+            const submitText = document.getElementById('review-submit-text');
+            submitText.textContent = 'Đang gửi...';
+
+            try {
+                const res  = await fetch('/reviews/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId:   parseInt(_reviewOrderId),
+                        productId: parseInt(_reviewProductId),
+                        rating:    parseInt(rating),
+                        comment:   comment
+                    })
+                });
+                const data = await res.json();
+
+                if (data.status === 'SUCCESS') {
+                    closeReviewModal();
+                    showToast('Cảm ơn bạn đã đánh giá!', 'success');
+                    // Đổi nút thành "Đã đánh giá" ngay lập tức (không cần reload)
+                    if (_reviewBtn) {
+                        const reviewed = document.createElement('span');
+                        reviewed.className = 'btn-reviewed';
+                        reviewed.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Đã đánh giá`;
+                        _reviewBtn.replaceWith(reviewed);
+                    }
+                } else {
+                    showToast(data.message || 'Gửi đánh giá thất bại', 'error');
+                    submitText.textContent = 'Gửi đánh giá';
+                }
+            } catch (err) {
+                showToast('Lỗi kết nối tới máy chủ', 'error');
+                submitText.textContent = 'Gửi đánh giá';
+            }
+        }
+
+        // Đóng modal khi click ngoài
+        document.getElementById('review-overlay').addEventListener('click', function(e) {
+            if (e.target === this) closeReviewModal();
+        });
+    </script>
+</body>
+</html>

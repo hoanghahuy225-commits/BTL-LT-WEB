@@ -23,6 +23,9 @@ public class OrderItem {
     @Column(name = "order_id", nullable = false)
     private Integer orderId;
 
+    @Column(name = "product_id")
+    private Integer productId;
+
     @Column(name = "variant_id", nullable = false)
     private Integer variantId;
 
@@ -31,6 +34,9 @@ public class OrderItem {
 
     @Column(name = "variant_snapshot", length = 255)
     private String variantSnapshot;
+
+    @Column(name = "product_image", length = 500)
+    private String productImage;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
