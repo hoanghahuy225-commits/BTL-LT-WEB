@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+  <div class="section-card">
+    <div class="section-header">
+      <h3>Danh mục sản phẩm</h3>
+      <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Thêm danh mục</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tên danh mục</th>
+          <th>Mô tả</th>
+          <th style="width: 150px; text-align: center;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:if="${#lists.isEmpty(categories)}">
+          <td colspan="4" class="empty-state"><p>Chưa có danh mục</p></td>
+        </tr>
+        <tr th:each="c : ${categories}">
+          <td th:text="${c.id}">-</td>
+          <td style="font-weight:600" th:text="${c.name}">-</td>
+          <td style="color:var(--text2)" th:text="${c.description ?: '-'}">-</td>
+          <td style="text-align: center;">
+            <button class="btn btn-outline btn-sm edit-btn" 
+                    th:data-id="${c.id}" 
+                    th:data-name="${c.name}" 
+                    th:data-description="${c.description ?: ''}"
+                    onclick="prepareEdit(this)" title="Sửa">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-outline btn-sm btn-danger" th:onclick="'deleteCategory(' + ${c.id} + ')'" title="Xóa" style="color: var(--danger); border-color: var(--danger);">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="categoryModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Thêm danh mục</h3>
+        <button class="modal-close" onclick="closeModal('categoryModal')">&times;</button>
+      </div>
+      <form id="categoryForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="categoryId" name="id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Tên danh mục *</label>
+            <input name="name" id="categoryName" required/>
+          </div>
+          <div class="form-group">
+            <label>Mô tả</label>
+            <textarea name="description" id="categoryDesc"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('categoryModal')">Hủy</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  function openModal(id){ document.getElementById(id).classList.add('show'); }
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+  document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
+
+  function openAddModal() {
+    document.getElementById('modalTitle').innerText = 'Thêm danh mục';
+    document.getElementById('submitBtn').innerText = 'Thêm';
+    document.getElementById('categoryId').value = '';
+    document.getElementById('categoryName').value = '';
+    document.getElementById('categoryDesc').value = '';
+    openModal('categoryModal');
+  }
+
+  function prepareEdit(btn) {
+    const id = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name');
+    const desc = btn.getAttribute('data-description');
+    
+    document.getElementById('modalTitle').innerText = 'Sửa danh mục';
+    document.getElementById('submitBtn').innerText = 'Cập nhật';
+    document.getElementById('categoryId').value = id;
+    document.getElementById('categoryName').value = name;
+    document.getElementById('categoryDesc').value = desc;
+    openModal('categoryModal');
+  }
+
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('categoryId').value;
+    const name = document.getElementById('categoryName').value;
+    const description = document.getElementById('categoryDesc').value;
+    
+    const url = id ? `/admin/categories/edit/${id}` : '/admin/categories/add';
+    
+    try {
+      const d = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name, description})
+      }).then(r => r.json());
+      
+      if (d.status === 'SUCCESS') {
+        toast(id ? 'Cập nhật thành công' : 'Thêm thành công');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        toast(d.message || 'Lỗi', 'error');
+      }
+    } catch (err) {
+      toast('Lỗi kết nối', 'error');
+    }
+  }
+
+  async function deleteCategory(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa danh mục này?')) return;
+    try {
+      const d = await fetch(`/admin/categories/delete/${id}`, {
+        method: 'POST'
+      }).then(r => r.json());
+      if (d.status === 'SUCCESS') {
+        toast('Xóa thành công');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        toast(d.message || 'Lỗi', 'error');
+      }
+    } catch (err) {
+      toast('Lỗi kết nối', 'error');
+    }
+  }
+  </script>
+</div>
+</html>

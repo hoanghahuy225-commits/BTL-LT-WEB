@@ -26,7 +26,7 @@ public class OrderItem {
     @Column(name = "product_id")
     private Integer productId;
 
-    @Column(name = "variant_id", nullable = false)
+    @Column(name = "variant_id")
     private Integer variantId;
 
     @Column(name = "product_name_snapshot", length = 255, nullable = false)

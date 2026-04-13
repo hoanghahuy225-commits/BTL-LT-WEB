@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+  <a th:href="@{/admin/products}" class="detail-back"><i class="fas fa-arrow-left"></i> Quay lại danh sách</a>
+
+  <div class="section-card" style="padding:24px">
+    <!-- Product Info -->
+    <div class="detail-top">
+      <img th:if="${product.thumbnailUrl != null}" th:src="${product.thumbnailUrl}" class="detail-thumb" alt=""/>
+      <div class="detail-info">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--text2)" th:text="'#' + ${product.id}"></span>
+          <span class="badge-status"
+                th:classappend="${product.isActive != false ? 'badge-delivered' : 'badge-cancelled'}"
+                th:text="${product.isActive != false ? 'Đang bán' : 'Ẩn'}">-</span>
+        </div>
+        <h2 th:text="${product.name}">-</h2>
+        <div class="detail-meta">
+          <span><i class="fas fa-layer-group" style="margin-right:4px"></i><th:block th:text="${categoryMap[product.categoryId] ?: '-'}"/></span>
+          <span><i class="fas fa-tags" style="margin-right:4px"></i><th:block th:text="${brandMap[product.brandId] ?: '-'}"/></span>
+          <span><i class="fas fa-futbol" style="margin-right:4px"></i><th:block th:text="${sportMap[product.sportId] ?: '-'}"/></span>
+          <span th:text="${product.gender != null ? product.gender.name() : 'Unisex'}">Unisex</span>
+        </div>
+        <div class="detail-prices">
+          <th:block th:if="${product.salePrice != null}">
+            <span class="sale" th:text="${#numbers.formatInteger(product.salePrice, 0, 'POINT') + 'đ'}">-</span>
+            <span class="base" th:text="${#numbers.formatInteger(product.basePrice, 0, 'POINT') + 'đ'}">-</span>
+          </th:block>
+          <th:block th:if="${product.salePrice == null}">
+            <span class="only" th:text="${#numbers.formatInteger(product.basePrice, 0, 'POINT') + 'đ'}">-</span>
+          </th:block>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <a th:href="@{/admin/products/{id}/edit(id=${product.id})}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i> Chỉnh sửa</a>
+          <button class="btn btn-outline btn-sm"
+                  th:style="${product.isActive != false ? 'font-weight:500;color:#fff;background:#f59e0b;border-color:#f59e0b' : 'font-weight:500;color:#fff;background:#10b981;border-color:#10b981'}"
+                  th:onclick="'toggleProductStatus(' + ${product.id} + ',' + ${product.isActive != false} + ')'"
+                  th:text="${product.isActive != false ? '⚫ Ẩn sản phẩm' : '🟢 Hiện sản phẩm'}">Toggle</button>
+          <button class="btn btn-outline btn-sm btn-danger" th:onclick="'deleteProduct(' + ${product.id} + ')'"><i class="fas fa-trash"></i> Xóa</button>
+        </div>
+        <div class="detail-desc" th:text="${product.description ?: 'Chưa có mô tả.'}">-</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="detail-tabs">
+      <button class="detail-tab active" onclick="switchDetailTab('variants',this)">Biến thể (Variants)</button>
+      <button class="detail-tab" onclick="switchDetailTab('images',this)">Ảnh sản phẩm</button>
+    </div>
+
+    <!-- Variants Tab -->
+    <div class="dtab active" id="dtab-variants">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <p style="font-size:13px;color:var(--text2)">Quản lý size, màu, tồn kho cho sản phẩm này</p>
+        <button class="btn btn-primary btn-sm" onclick="openModal('variantModal')"><i class="fas fa-plus"></i> Thêm variant</button>
+      </div>
+      <table>
+        <thead><tr><th>ID</th><th>Size</th><th>Màu</th><th>Tồn kho</th><th>Thao tác</th></tr></thead>
+        <tbody>
+          <tr th:if="${#lists.isEmpty(variants)}">
+            <td colspan="5" class="empty-state"><i class="fas fa-cubes" style="font-size:28px;opacity:.2"></i><p>Chưa có biến thể</p></td>
+          </tr>
+          <tr th:each="v : ${variants}">
+            <td th:text="${v.id}">-</td>
+            <td><span class="badge-status badge-confirmed" th:text="${v.sizeId != null ? sizeMap[v.sizeId] : 'Mặc định'}">-</span></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px" th:if="${v.colorId != null && colorMap[v.colorId] != null}">
+                <span th:style="'width:14px;height:14px;border-radius:3px;background:' + (${colorCodeMap[v.colorId] ?: '#ccc'}) + ';border:1px solid var(--border);display:inline-block'"></span>
+                <span th:text="${colorMap[v.colorId]}">-</span>
+              </div>
+              <span th:if="${v.colorId == null}" style="color:var(--text2)">Mặc định</span>
+            </td>
+            <td><span style="font-weight:700" th:style="${v.stockQuantity < 5 ? 'color:var(--red)' : ''}" th:text="${v.stockQuantity}">0</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="btn btn-outline btn-sm" th:onclick="'openEditVariant(' + ${v.id} + ',' + ${v.sizeId} + ',' + ${v.colorId} + ',' + ${v.stockQuantity} + ')'"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-outline btn-sm btn-danger" th:onclick="'deleteVariant(' + ${v.id} + ')'"><i class="fas fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Images Tab -->
+    <div class="dtab" id="dtab-images">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <p style="font-size:13px;color:var(--text2)">Quản lý ảnh sản phẩm theo màu sắc</p>
+        <button class="btn btn-primary btn-sm" onclick="openModal('imageModal')"><i class="fas fa-plus"></i> Thêm ảnh</button>
+      </div>
+      <div class="img-grid">
+        <div class="img-card" th:each="img : ${images}">
+          <img th:src="${img.imageUrl}" alt=""/>
+          <span class="color-tag" th:if="${img.colorId != null && colorMap[img.colorId] != null}"
+                style="display:flex;align-items:center;gap:4px">
+            <span th:style="'width:10px;height:10px;border-radius:50%;background:' + (${colorCodeMap[img.colorId] ?: '#ccc'}) + ';border:1px solid rgba(255,255,255,.4);display:inline-block'"></span>
+            <span th:text="${colorMap[img.colorId]}">-</span>
+          </span>
+          <button class="btn btn-danger btn-sm" style="position:absolute;top:6px;right:6px;padding:4px 8px"
+                  th:onclick="'deleteImage(' + ${img.id} + ', event)'"><i class="fas fa-trash"></i></button>
+        </div>
+        <div class="img-add-card" onclick="openModal('imageModal')"><i class="fas fa-plus" style="font-size:20px"></i>Thêm ảnh</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANT MODAL -->
+  <div class="modal-overlay" id="variantModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="variantModalTitle">Thêm biến thể</h3>
+        <button class="modal-close" onclick="closeModal('variantModal')">&times;</button>
+      </div>
+      <form id="variantForm" onsubmit="saveVariant(event)">
+        <div class="modal-body">
+          <input type="hidden" name="variantId" id="variantEditId"/>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Size</label>
+              <select name="sizeId" id="varSize">
+                <option value="">Không chọn</option>
+                <option th:each="s : ${sizes}" th:value="${s.id}" th:text="${s.name}">-</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Màu sắc</label>
+              <select name="colorId" id="varColor">
+                <option value="">Không chọn</option>
+                <option th:each="c : ${colors}" th:value="${c.id}" th:text="${c.name}">-</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label>Số lượng tồn kho *</label><input name="stockQuantity" id="varStock" type="number" min="0" required/></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('variantModal')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- IMAGE MODAL -->
+  <div class="modal-overlay" id="imageModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Thêm ảnh sản phẩm</h3>
+        <button class="modal-close" onclick="closeModal('imageModal')">&times;</button>
+      </div>
+      <form id="imageForm" onsubmit="addImage(event)">
+        <div class="modal-body">
+          <div class="form-group"><label>Chọn ảnh *</label><input type="file" name="imageFile" accept="image/*" required/></div>
+          <div class="form-group">
+            <label>Màu sắc (tùy chọn)</label>
+            <select name="colorId" id="imgColor">
+              <option value="">Không chọn</option>
+              <option th:each="c : ${colors}" th:value="${c.id}" th:text="${c.name}">-</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('imageModal')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Thêm ảnh</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+  const productId = [[${product.id}]];
+
+  function switchDetailTab(tab, btn) {
+    document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.dtab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('dtab-' + tab).classList.add('active');
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('show'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if(e.target === o) o.classList.remove('show'); });
+  });
+
+  async function toggleProductStatus(id, currentActive) {
+    if(!confirm(currentActive ? 'Ẩn sản phẩm này?' : 'Hiện sản phẩm này?')) return;
+    try {
+      const r = await fetch('/admin/products/'+id+'/toggle-status', {method:'PUT'});
+      const d = await r.json();
+      if(d.status === 'SUCCESS') { 
+        toast(currentActive ? 'Đã ẩn sản phẩm' : 'Đã hiện sản phẩm'); 
+        setTimeout(()=>location.reload(), 500); 
+      } else {
+        toast(d.message || 'Lỗi', 'error');
+      }
+    } catch(e) { toast('Lỗi server', 'error'); }
+  }
+
+  async function deleteProduct(id) {
+    if(!confirm('Xóa sản phẩm này?')) return;
+    try {
+      const r = await fetch('/admin/products/'+id+'/delete', {method:'DELETE'});
+      const d = await r.json();
+      if(d.status === 'SUCCESS') { 
+        toast('Đã xóa sản phẩm'); 
+        setTimeout(()=>window.location.href='/admin/products', 500); 
+      } else {
+        toast(d.message || 'Lỗi', 'error');
+      }
+    } catch(e) { toast('Lỗi server', 'error'); }
+  }
+
+  function openEditVariant(id, sizeId, colorId, stock) {
+    document.getElementById('variantEditId').value = id;
+    document.getElementById('variantModalTitle').textContent = 'Chỉnh sửa biến thể';
+    document.getElementById('varSize').value = sizeId || '';
+    document.getElementById('varColor').value = colorId || '';
+    document.getElementById('varStock').value = stock;
+    openModal('variantModal');
+  }
+
+  async function saveVariant(e) {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const editId = f.get('variantId');
+    
+    let sizeId = f.get('sizeId');
+    let colorId = f.get('colorId');
+    
+    const body = {
+      productId: productId,
+      sizeId: (sizeId && sizeId !== "" && sizeId !== "0") ? Number(sizeId) : null,
+      colorId: (colorId && colorId !== "" && colorId !== "0") ? Number(colorId) : null,
+      stockQuantity: Number(f.get('stockQuantity'))
+    };
+    let url = editId ? '/variant/update/'+editId : '/variant/add';
+    let method = editId ? 'PUT' : 'POST';
+    const d = await fetch(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}).then(r=>r.json());
+    if(d.status === 'SUCCESS') { toast(editId ? 'Cập nhật variant thành công' : 'Thêm variant thành công'); setTimeout(()=>location.reload(), 500); }
+    else toast(d.message || 'Lỗi', 'error');
+  }
+
+  async function deleteVariant(id) {
+    if(!confirm('Xóa variant này?')) return;
+    const d = await fetch('/variant/delete/'+id, {method:'DELETE', headers:{'Content-Type':'application/json'}}).then(r=>r.json());
+    if(d.status === 'SUCCESS') { toast('Đã xóa variant'); setTimeout(()=>location.reload(), 500); }
+    else toast(d.message || 'Lỗi', 'error');
+  }
+
+  async function uploadFileToApi(file) {
+    const fd = new FormData(); fd.append('file', file);
+    try { const r = await fetch('/api/upload', {method:'POST', body:fd}); const d = await r.json(); if(d.status==='SUCCESS') return d.data; } catch(e) {}
+    return null;
+  }
+
+  async function addImage(e) {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const file = f.get('imageFile');
+    if(!file || file.size === 0) return toast('Vui lòng chọn ảnh', 'error');
+    const url = await uploadFileToApi(file);
+    if(!url) return toast('Tải ảnh thất bại', 'error');
+    const img = { productId: productId, imageUrl: url };
+    const colorId = f.get('colorId');
+    if(colorId) img.colorId = Number(colorId);
+    const d = await fetch('/product-image/add', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify([img])}).then(r=>r.json());
+    if(d.status === 'SUCCESS') { toast('Thêm ảnh thành công'); setTimeout(()=>location.reload(), 500); }
+    else toast(d.message || 'Lỗi', 'error');
+  }
+
+  async function deleteImage(id, e) {
+    e.stopPropagation();
+    if(!confirm('Xóa ảnh này?')) return;
+    const d = await fetch('/product-image/delete/'+id, {method:'DELETE', headers:{'Content-Type':'application/json'}}).then(r=>r.json());
+    if(d.status === 'SUCCESS') { toast('Đã xóa ảnh'); setTimeout(()=>location.reload(), 500); }
+    else toast(d.message || 'Lỗi', 'error');
+  }
+  </script>
+</div>
+</html>

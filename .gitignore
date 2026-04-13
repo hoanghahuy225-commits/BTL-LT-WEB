@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Custom Ignored Files ###
+uploads/
+compile_log.txt
+compile_output.txt

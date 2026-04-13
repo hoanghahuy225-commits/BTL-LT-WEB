@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+  <div class="section-card">
+    <div class="section-header">
+      <h3>Môn thể thao</h3>
+      <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Thêm môn TT</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tên môn thể thao</th>
+          <th>Mô tả</th>
+          <th style="width: 150px; text-align: center;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:if="${#lists.isEmpty(sports)}">
+          <td colspan="4" class="empty-state"><p>Chưa có môn thể thao</p></td>
+        </tr>
+        <tr th:each="s : ${sports}">
+          <td th:text="${s.id}">-</td>
+          <td style="font-weight:600" th:text="${s.name}">-</td>
+          <td style="color:var(--text2)" th:text="${s.description ?: '-'}">-</td>
+          <td style="text-align: center;">
+            <button class="btn btn-outline btn-sm edit-btn" 
+                    th:data-id="${s.id}" 
+                    th:data-name="${s.name}" 
+                    th:data-description="${s.description ?: ''}"
+                    onclick="prepareEdit(this)" title="Sửa">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-outline btn-sm btn-danger" th:onclick="'deleteSport(' + ${s.id} + ')'" title="Xóa" style="color: var(--danger); border-color: var(--danger);">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal-overlay" id="sportModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Thêm môn thể thao</h3>
+        <button class="modal-close" onclick="closeModal('sportModal')">&times;</button>
+      </div>
+      <form id="sportForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="sportId" name="id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Tên môn TT *</label>
+            <input name="name" id="sportName" required/>
+          </div>
+          <div class="form-group">
+            <label>Mô tả</label>
+            <textarea name="description" id="sportDesc"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('sportModal')">Hủy</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Thêm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  function openModal(id){ document.getElementById(id).classList.add('show'); }
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+  document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
+
+  function openAddModal() {
+    document.getElementById('modalTitle').innerText = 'Thêm môn thể thao';
+    document.getElementById('submitBtn').innerText = 'Thêm';
+    document.getElementById('sportId').value = '';
+    document.getElementById('sportName').value = '';
+    document.getElementById('sportDesc').value = '';
+    openModal('sportModal');
+  }
+
+  function prepareEdit(btn) {
+    const id = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name');
+    const desc = btn.getAttribute('data-description');
+    
+    document.getElementById('modalTitle').innerText = 'Sửa môn thể thao';
+    document.getElementById('submitBtn').innerText = 'Cập nhật';
+    document.getElementById('sportId').value = id;
+    document.getElementById('sportName').value = name;
+    document.getElementById('sportDesc').value = desc;
+    openModal('sportModal');
+  }
+
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('sportId').value;
+    const name = document.getElementById('sportName').value;
+    const description = document.getElementById('sportDesc').value;
+    
+    const url = id ? `/admin/sports/edit/${id}` : '/admin/sports/add';
+    
+    try {
+      const d = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name, description})
+      }).then(r => r.json());
+      
+      if (d.status === 'SUCCESS') {
+        toast(id ? 'Cập nhật thành công' : 'Thêm thành công');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        toast(d.message || 'Lỗi', 'error');
+      }
+    } catch (err) {
+      toast('Lỗi kết nối', 'error');
+    }
+  }
+
+  async function deleteSport(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa môn thể thao này?')) return;
+    try {
+      const d = await fetch(`/admin/sports/delete/${id}`, {
+        method: 'POST'
+      }).then(r => r.json());
+      if (d.status === 'SUCCESS') {
+        toast('Xóa thành công');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        toast(d.message || 'Lỗi', 'error');
+      }
+    } catch (err) {
+      toast('Lỗi kết nối', 'error');
+    }
+  }
+  </script>
+</div>
+</html>

@@ -22,54 +22,53 @@ public class UserService {
     
     public ResponseEntity<ApiResponse<Object>> login(String identifier, String password, HttpSession session) {
         try {
-            
             User user = userRepository.findByEmail(identifier);
             if (user == null) {
                 user = userRepository.findByUsername(identifier);
             }
 
             if (user == null) {
-                return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("ERROR", "Tài khoản không tồn tại", null)
-                );
+                return ResponseEntity.badRequest().body(new ApiResponse<>("ERROR", "Tài khoản không tồn tại", null));
             }
 
             if (Boolean.FALSE.equals(user.getIsActive())) {
-                return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("ERROR", "Tài khoản đã bị vô hiệu hóa", null)
-                );
+                return ResponseEntity.badRequest().body(new ApiResponse<>("ERROR", "Tài khoản đã bị vô hiệu hóa", null));
             }
 
-            // Kiểm tra mật khẩu theo role
-            boolean passwordOk;
-            if ("CLIENT".equals(user.getRole())) {
-                // Client dùng BCrypt
+            boolean passwordOk = false;
+            boolean needsUpdate = false;
+
+            try {
+                // Thử kiểm tra bằng BCrypt
                 passwordOk = BCrypt.checkpw(password, user.getPassword());
-            } else {
-                // Admin / Staff dùng plain text (hoặc có thể đổi sang BCrypt sau)
-                passwordOk = user.getPassword().equals(password);
+            } catch (Exception e) {
+                // Nếu lỗi (do mật khẩu trong DB chưa hash), kiểm tra trực tiếp
+                if (user.getPassword().equals(password)) {
+                    passwordOk = true;
+                    needsUpdate = true; // Đánh dấu cần cập nhật hash
+                }
             }
 
             if (!passwordOk) {
-                return ResponseEntity.badRequest().body(
-                    new ApiResponse<>("ERROR", "Sai mật khẩu", null)
-                );
+                return ResponseEntity.badRequest().body(new ApiResponse<>("ERROR", "Sai mật khẩu", null));
             }
 
-            // Lưu user vào session với key thống nhất "currentUser"
+            // Nếu mật khẩu đúng nhưng chưa hash, thực hiện hash và lưu lại
+            if (needsUpdate) {
+                user.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+                userRepository.save(user);
+                System.out.println("✅ [UserService] Đã tự động Hash lại mật khẩu cho: " + identifier);
+            }
+
             session.setAttribute("currentUser", user);
 
             String message = "ADMIN".equals(user.getRole()) ? "Đăng nhập Admin thành công"
                            : "STAFF".equals(user.getRole()) ? "Đăng nhập Staff thành công"
                            : "Đăng nhập thành công";
 
-            return ResponseEntity.ok().body(
-                new ApiResponse<>("SUCCESS", message, user)
-            );
+            return ResponseEntity.ok().body(new ApiResponse<>("SUCCESS", message, user));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(
-                new ApiResponse<>("ERROR", "Lỗi Server", e.getMessage())
-            );
+            return ResponseEntity.internalServerError().body(new ApiResponse<>("ERROR", "Lỗi Server", e.getMessage()));
         }
     }
 
@@ -183,6 +182,33 @@ public class UserService {
             return ResponseEntity.badRequest().body(
                 new ApiResponse<>("ERROR", "Cập nhật thất bại", e.getMessage())
             );
+        }
+    }
+
+    public java.util.List<User> getUsersByRole(String role) {
+        return userRepository.findByRole(role);
+    }
+
+    public ResponseEntity<ApiResponse<Object>> changePassword(String oldPwd, String newPwd, HttpSession session) {
+        try {
+            User sessionUser = (User) session.getAttribute("currentUser");
+            if (sessionUser == null) {
+                return ResponseEntity.status(401).body(new ApiResponse<>("ERROR", "Chưa đăng nhập", null));
+            }
+            User user = userRepository.findById(sessionUser.getId()).orElse(null);
+            if (user == null) {
+                return ResponseEntity.badRequest().body(new ApiResponse<>("ERROR", "Người dùng không tồn tại", null));
+            }
+
+            if (!BCrypt.checkpw(oldPwd, user.getPassword())) {
+                return ResponseEntity.badRequest().body(new ApiResponse<>("ERROR", "Mật khẩu hiện tại không đúng", null));
+            }
+
+            user.setPassword(BCrypt.hashpw(newPwd, BCrypt.gensalt()));
+            userRepository.save(user);
+            return ResponseEntity.ok().body(new ApiResponse<>("SUCCESS", "Đổi mật khẩu thành công", null));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(new ApiResponse<>("ERROR", "Lỗi server", e.getMessage()));
         }
     }
 }

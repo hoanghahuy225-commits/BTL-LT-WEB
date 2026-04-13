@@ -31,7 +31,7 @@ public class Product {
     @Column(name = "brand_id")
     private Integer brandId;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Enumerated(EnumType.STRING)

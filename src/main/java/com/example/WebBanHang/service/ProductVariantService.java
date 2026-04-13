@@ -25,11 +25,17 @@ public class ProductVariantService {
 
          public ResponseEntity <ApiResponse<ProductVariant>> addProductVariant(ProductVariant p) {
             try {
-                if(p.getProductId() == null || p.getSizeId() == null || p.getColorId() == null || p.getStockQuantity() == null) {
+                if(p.getProductId() == null || p.getStockQuantity() == null) {
                     return ResponseEntity.badRequest().body(new ApiResponse<>( "ERROR", "Thiếu thông tin", null));  
                 }   
 
-                if(productVariantRepository.findByProductIdAndSizeIdAndColorId(p.getProductId(), p.getSizeId(), p.getColorId()) != null) {
+                List<ProductVariant> existingVariants = productVariantRepository.findByProductId(p.getProductId());
+                boolean exists = existingVariants.stream().anyMatch(v -> 
+                    ((v.getSizeId() == null && p.getSizeId() == null) || (v.getSizeId() != null && v.getSizeId().equals(p.getSizeId()))) &&
+                    ((v.getColorId() == null && p.getColorId() == null) || (v.getColorId() != null && v.getColorId().equals(p.getColorId())))
+                );
+
+                if(exists) {
                     return ResponseEntity.badRequest().body(new ApiResponse<>( "ERROR", "Variant đã tồn tại", null));  
                 }
                 p.setCreatedAt(LocalDateTime.now());
@@ -41,19 +47,34 @@ public class ProductVariantService {
          }
          public ResponseEntity<ApiResponse<ProductVariant>> updateVariant(Integer id , ProductVariant  p ) {
             try {
-                if(p.getProductId() == null || p.getSizeId() == null || p.getColorId() == null || p.getStockQuantity() == null) {
+                if(p.getProductId() == null || p.getStockQuantity() == null) {
                     return ResponseEntity.badRequest().body(new ApiResponse<>( "ERROR", "Thiếu thông tin", null));  
                 }   
 
                 if(!productVariantRepository.existsById(id)) {
                     return ResponseEntity.badRequest().body(new ApiResponse<>( "ERROR", "Variant không tồn tại", null));  
                 }
-                if(productVariantRepository.findByProductIdAndSizeIdAndColorId(p.getProductId(), p.getSizeId(), p.getColorId()) != null) {
+
+                List<ProductVariant> existingVariants = productVariantRepository.findByProductId(p.getProductId());
+                boolean exists = existingVariants.stream().anyMatch(v -> 
+                    !v.getId().equals(id) &&
+                    ((v.getSizeId() == null && p.getSizeId() == null) || (v.getSizeId() != null && v.getSizeId().equals(p.getSizeId()))) &&
+                    ((v.getColorId() == null && p.getColorId() == null) || (v.getColorId() != null && v.getColorId().equals(p.getColorId())))
+                );
+
+                if(exists) {
                     return ResponseEntity.badRequest().body(new ApiResponse<>( "ERROR", "Variant đã tồn tại", null));  
                 }
-                p.setId(id);
-                p.setUpdatedAt(LocalDateTime.now());
-                return ResponseEntity.ok(new ApiResponse<>( "SUCCESS", "Cập nhật variant sản phẩm thành công ", productVariantRepository.save(p))); 
+                
+                ProductVariant current = productVariantRepository.findById(id).orElse(null);
+                if (current != null) {
+                    current.setSizeId(p.getSizeId());
+                    current.setColorId(p.getColorId());
+                    current.setStockQuantity(p.getStockQuantity());
+                    current.setUpdatedAt(LocalDateTime.now());
+                    return ResponseEntity.ok(new ApiResponse<>( "SUCCESS", "Cập nhật variant sản phẩm thành công ", productVariantRepository.save(current)));
+                }
+                return ResponseEntity.badRequest().body(new ApiResponse<>( "ERROR", "Lỗi khi cập nhật", null));
             } catch (Exception e) {
                 return ResponseEntity.badRequest().body(new ApiResponse<>( "ERROR", "Lỗi Server", null)); 
             }

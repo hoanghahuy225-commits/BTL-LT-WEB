@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/client/header.css">
     <link rel="stylesheet" href="/css/client/footer.css">
     <link rel="stylesheet" href="/css/client/toast.css">
+    <link rel="stylesheet" href="/css/client/chat-widget.css">
     <style>
         /* ── Page Layout ── */
         .cart-page {
@@ -655,6 +656,9 @@
 </section>
 
 <div th:replace="~{client/fragments/footer :: footer_fragment}"></div>
+
+<!-- Chat Widget -->
+<div th:replace="~{client/fragments/chat-widget :: chat_widget}"></div>
 
 <script>
     /* ── Xóa sản phẩm ── */

@@ -48,6 +48,12 @@ public class HomeController {
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("sports", sportService.getAllSports());
         model.addAttribute("brands", brandService.getAllBrands());
+        
+        // Fetch sale products for Hero section
+        List<ProductSummaryDto> saleProducts = productService.getSaleProducts(
+            currentUser != null ? currentUser.getId() : null, 4);
+        model.addAttribute("saleProducts", saleProducts);
+
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductSummaryDto> summaryPage = productService.listSummaryPaginated(
             currentUser != null ? currentUser.getId() : null, pageable);
@@ -83,6 +89,7 @@ public class HomeController {
             @RequestParam(defaultValue = "12") int size,
             @RequestParam(required = false) Long minPrice,
             @RequestParam(required = false) Long maxPrice,
+            @RequestParam(required = false) Boolean isOnSale,
             HttpSession session, Model model) {
         User currentUser = (User) session.getAttribute("currentUser");
         if (currentUser != null) model.addAttribute("currentUser", currentUser);
@@ -96,10 +103,12 @@ public class HomeController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("minPrice", minPrice);
         model.addAttribute("maxPrice", maxPrice);
+        model.addAttribute("isOnSale", isOnSale);
+        
         Pageable pageable = PageRequest.of(page, size);
         Page<ProductSummaryDto> resultPage = productService.filterProducts(
                 currentUser != null ? currentUser.getId() : null,
-                categoryId, sportId, brandId, sortBy, keyword, minPrice, maxPrice, pageable);
+                categoryId, sportId, brandId, sortBy, keyword, minPrice, maxPrice, isOnSale, pageable);
         model.addAttribute("products", resultPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", resultPage.getTotalPages());

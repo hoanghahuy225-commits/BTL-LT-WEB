@@ -29,6 +29,19 @@ public class OrderController {
     @PostMapping("/add")
     @ResponseBody
     public ResponseEntity<?> addOrder(@RequestBody OrderRequestDto request) {
+        // Validate required fields manually
+        if (request.getUserId() == null) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("status", "ERROR", "message", "Bạn cần đăng nhập để đặt hàng"));
+        }
+        if (request.getShippingRecipientName() == null || request.getShippingRecipientName().isBlank()) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("status", "ERROR", "message", "Vui lòng nhập tên người nhận hàng"));
+        }
+        if (request.getShippingPhone() == null || request.getShippingPhone().isBlank()) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("status", "ERROR", "message", "Vui lòng nhập số điện thoại người nhận"));
+        }
+        if (request.getShippingAddressLine() == null || request.getShippingAddressLine().isBlank()) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("status", "ERROR", "message", "Vui lòng nhập địa chỉ giao hàng"));
+        }
         try {
             Order savedOrder = orderService.createOrder(request);
             Map<String, Object> response = new HashMap<>();
@@ -40,8 +53,8 @@ public class OrderController {
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
             response.put("status", "ERROR");
-            response.put("message", "Đã xảy ra lỗi khi tạo đơn hàng: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            response.put("message", "Lỗi khi tạo đơn hàng: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
         }
     }
 

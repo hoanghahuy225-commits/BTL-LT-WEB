@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<header th:fragment="topbar(pageTitle, currentUser)" class="topbar">
+  <div class="topbar-left">
+    <button class="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')"><i class="fas fa-bars"></i></button>
+    <h2 th:text="${pageTitle}">Dashboard</h2>
+  </div>
+  <div class="topbar-right">
+    <a th:href="@{/}" class="topbar-btn" title="Xem cửa hàng" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">
+      <i class="fas fa-external-link-alt"></i>
+    </a>
+    <form th:action="@{/admin/search}" method="get" class="topbar-search">
+      <i class="fas fa-search" onclick="this.parentElement.submit()" style="cursor:pointer"></i>
+      <input name="q" th:value="${query}" placeholder="Tìm kiếm sản phẩm, đơn hàng..."/>
+    </form>
+    <div class="user-menu">
+      <div class="user-avatar" th:text="${currentUser != null ? #strings.substring(currentUser.fullName, 0, 2).toUpperCase() : 'AD'}">AD</div>
+      <div class="user-info">
+        <div class="name" th:text="${currentUser != null ? currentUser.fullName : 'Admin'}">Admin</div>
+        <div class="role" th:text="${currentUser != null ? currentUser.role : 'ADMIN'}">ADMIN</div>
+      </div>
+    </div>
+  </div>
+</header>
+</html>

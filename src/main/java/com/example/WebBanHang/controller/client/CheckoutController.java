@@ -80,13 +80,28 @@ public class CheckoutController {
             if (variant != null) {
                 item.setVariantId(variant.getId());
                 item.setStockQuantity(variant.getStockQuantity());
-                Color color = colorRepository.findById(variant.getColorId()).orElse(null);
-                if (color != null) { item.setColorId(color.getId()); item.setColorName(color.getName()); item.setColorCode(color.getCode()); }
-                Size size = sizeRepository.findById(variant.getSizeId()).orElse(null);
-                if (size != null) { item.setSizeId(size.getId()); item.setSizeName(size.getName()); }
-                String thumbnailUrl = productImageRepository
-                        .findFirstByProductIdAndColorId(product.getId(), variant.getColorId())
-                        .map(img -> img.getImageUrl()).orElse(product.getThumbnailUrl());
+                
+                if (variant.getColorId() != null) {
+                    colorRepository.findById(variant.getColorId()).ifPresent(color -> {
+                        item.setColorId(color.getId());
+                        item.setColorName(color.getName());
+                        item.setColorCode(color.getCode());
+                    });
+                }
+                
+                if (variant.getSizeId() != null) {
+                    sizeRepository.findById(variant.getSizeId()).ifPresent(size -> {
+                        item.setSizeId(size.getId());
+                        item.setSizeName(size.getName());
+                    });
+                }
+
+                String thumbnailUrl = product.getThumbnailUrl();
+                if (variant.getColorId() != null) {
+                    thumbnailUrl = productImageRepository
+                            .findFirstByProductIdAndColorId(product.getId(), variant.getColorId())
+                            .map(img -> img.getImageUrl()).orElse(product.getThumbnailUrl());
+                }
                 item.setThumbnailUrl(thumbnailUrl);
             }
         } else {

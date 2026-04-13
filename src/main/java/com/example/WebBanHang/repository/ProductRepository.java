@@ -19,4 +19,8 @@ public interface ProductRepository extends JpaRepository<Product, Integer>, JpaS
     public List<Product> findByIsActiveTrue();
     public List<Product> findByNameContainingIgnoreCase(String keyword);
     public Page<Product> findByIsActiveTrue(Pageable pageable);
+
+    boolean existsByCategoryId(Integer categoryId);
+    boolean existsByBrandId(Integer brandId);
+    boolean existsBySportId(Integer sportId);
 }

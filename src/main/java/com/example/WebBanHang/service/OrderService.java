@@ -89,7 +89,7 @@ public class OrderService {
                 }
                 
                 orderItem.setProductId(pId);
-                orderItem.setVariantId(item.getVariantId() != null ? item.getVariantId() : 0);
+                orderItem.setVariantId(item.getVariantId());
                 orderItem.setProductNameSnapshot(item.getProductName());
 
                 String variantStr = "";
@@ -219,9 +219,27 @@ public class OrderService {
         }
     }
 
-    public Page<Order> getAllOrdersPaginated(int page, int size, String[] sort) {
-        Sort.Direction direction = sort[1].equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+    public Page<Order> getAllOrdersPaginated(int page, int size, String[] sort, String status) {
+        String sortField = "orderDate";
+        Sort.Direction direction = Sort.Direction.DESC;
+
+        if (sort != null && sort.length >= 2) {
+            sortField = sort[0].trim();
+            direction = sort[1].trim().equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        } else if (sort != null && sort.length == 1 && sort[0].contains(",")) {
+            String[] parts = sort[0].split(",", 2);
+            sortField = parts[0].trim();
+            if (parts.length > 1) {
+                direction = parts[1].trim().equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+        
+        if (status != null && !status.isEmpty()) {
+            return orderRepository.findByOrderStatus(status, pageable);
+        }
+        
         return orderRepository.findAll(pageable);
     }
 
@@ -243,5 +261,16 @@ public class OrderService {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(new ApiResponse<>("ERROR", "Lỗi khi lấy chi tiết", e.getMessage()));
         }
+    }
+
+    public Map<String, Long> getOrderStatusCounts() {
+        Map<String, Long> counts = new HashMap<>();
+        counts.put("Total", orderRepository.count());
+        counts.put("Pending", orderRepository.countByOrderStatus("Pending"));
+        counts.put("Confirmed", orderRepository.countByOrderStatus("Confirmed"));
+        counts.put("Shipping", orderRepository.countByOrderStatus("Shipping"));
+        counts.put("Delivered", orderRepository.countByOrderStatus("Delivered"));
+        counts.put("Cancelled", orderRepository.countByOrderStatus("Cancelled"));
+        return counts;
     }
 }

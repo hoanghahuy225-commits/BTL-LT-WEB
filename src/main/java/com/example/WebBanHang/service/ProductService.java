@@ -92,7 +92,7 @@ public class ProductService {
     public ResponseEntity<ApiResponse> listProduct() {
         try {
             return ResponseEntity.ok().body(
-                new ApiResponse<>("SUCCESS", "Lấy danh sách sản phẩm thành công", repo.findByIsActiveTrue())
+                new ApiResponse<>("SUCCESS", "Lấy danh sách sản phẩm thành công", repo.findAll(Sort.by(Sort.Direction.DESC, "createdAt")))
             );
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
@@ -313,11 +313,11 @@ public class ProductService {
         String keyword,
         Long minPrice,
         Long maxPrice,
+        Boolean isOnSale,
         Pageable pageable) {
 
-    Specification<Product> spec = (root, query, cb) -> cb.conjunction();
+    Specification<Product> spec = (root, query, cb) -> cb.equal(root.get("isActive"), true);
 
-  
     if (categoryIds != null && !categoryIds.isEmpty())
         spec = spec.and((root, q, cb) -> root.get("categoryId").in(categoryIds));
 
@@ -338,12 +338,22 @@ public class ProductService {
     if (maxPrice != null)
         spec = spec.and((root, q, cb) -> cb.lessThanOrEqualTo(root.get("basePrice"), maxPrice));
 
+    if (isOnSale != null && isOnSale) {
+        LocalDateTime now = LocalDateTime.now();
+        spec = spec.and((root, q, cb) -> cb.and(
+            cb.isNotNull(root.get("salePrice")),
+            cb.lessThan(root.get("saleStart"), now),
+            cb.greaterThan(root.get("saleEnd"), now)
+        ));
+    }
+
     // sort
     Sort sort = switch (sortBy != null ? sortBy : "newest") {
-        case "price_asc"  -> Sort.by("basePrice").ascending();
-        case "price_desc" -> Sort.by("basePrice").descending();
-        case "name_asc"   -> Sort.by("name").ascending();
-        default           -> Sort.by("createdAt").descending();
+        case "price_asc"   -> Sort.by("basePrice").ascending();
+        case "price_desc"  -> Sort.by("basePrice").descending();
+        case "name_asc"    -> Sort.by("name").ascending();
+        case "best_seller" -> Sort.by(Sort.Direction.DESC, "soldQuantity");
+        default            -> Sort.by("createdAt").descending();
     };
 
     Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
@@ -354,6 +364,26 @@ public class ProductService {
 
     return productPage.map(p -> mapToDto(p, wishListProductIds));
 }
+
+    public List<ProductSummaryDto> getSaleProducts(Integer userId, int limit) {
+        LocalDateTime now = LocalDateTime.now();
+        Specification<Product> spec = (root, query, cb) -> cb.and(
+            cb.equal(root.get("isActive"), true),
+            cb.isNotNull(root.get("salePrice")),
+            cb.lessThan(root.get("saleStart"), now),
+            cb.greaterThan(root.get("saleEnd"), now)
+        );
+        
+        Pageable pageable = PageRequest.of(0, limit, Sort.by("saleStart").descending());
+        Page<Product> productPage = repo.findAll(spec, pageable);
+        
+        List<Integer> wishListProductIds = (userId != null) ? 
+            wishListService.getWishListProductIds(userId) : List.of();
+            
+        return productPage.getContent().stream()
+            .map(p -> mapToDto(p, wishListProductIds))
+            .collect(Collectors.toList());
+    }
 
     private ProductSummaryDto mapToDto(Product p, List<Integer> wishListProductIds) {
         Integer discount = null;

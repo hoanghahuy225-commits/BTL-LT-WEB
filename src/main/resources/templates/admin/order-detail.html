@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+  <a th:href="@{/admin/orders}" class="detail-back"><i class="fas fa-arrow-left"></i> Quay lại danh sách đơn hàng</a>
+
+  <div class="section-card" style="padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:20px">
+      <div>
+        <h2 style="font-size:20px;margin-bottom:6px">Chi tiết đơn hàng <span style="color:var(--primary)" th:text="'#' + ${order.orderCode}">-</span></h2>
+        <div style="font-size:13px;color:var(--text2)">Ngày đặt: <span th:text="${order.orderDate != null ? #temporals.format(order.orderDate, 'dd/MM/yyyy HH:mm') : '-'}">-</span></div>
+      </div>
+      <div>
+        <span class="badge-status"
+              th:classappend="${order.orderStatus == 'Pending'} ? 'badge-pending' : (${order.orderStatus == 'Confirmed'} ? 'badge-confirmed' : (${order.orderStatus == 'Shipping'} ? 'badge-shipping' : (${order.orderStatus == 'Delivered'} ? 'badge-delivered' : 'badge-cancelled')))"
+              th:text="${order.orderStatus == 'Pending'} ? 'Chờ xác nhận' : (${order.orderStatus == 'Confirmed'} ? 'Đã xác nhận' : (${order.orderStatus == 'Shipping'} ? 'Đang giao' : (${order.orderStatus == 'Delivered'} ? 'Đã giao' : 'Đã hủy')))"
+              style="font-size:14px;padding:6px 16px">-</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+      <div style="background:var(--bg);padding:16px;border-radius:12px;border:1px solid var(--border)">
+        <h4 style="font-size:14px;margin-bottom:12px;color:var(--text2)"><i class="fas fa-user"></i> Người nhận hàng</h4>
+        <div style="font-weight:600;margin-bottom:4px" th:text="${order.shippingRecipientName}">-</div>
+        <div style="font-size:13px;margin-bottom:4px" th:text="${order.shippingPhone}">-</div>
+        <div style="font-size:13px">
+          <span th:text="${order.shippingAddressLine}">-</span><br/>
+          <span th:text="${(order.shippingWard != null ? order.shippingWard + ', ' : '') + (order.shippingCity != null ? order.shippingCity : '')}">-</span>
+        </div>
+      </div>
+      <div style="background:var(--bg);padding:16px;border-radius:12px;border:1px solid var(--border)">
+        <h4 style="font-size:14px;margin-bottom:12px;color:var(--text2)"><i class="fas fa-money-bill-wave"></i> Thanh toán</h4>
+        <div style="font-size:13px;margin-bottom:4px">Phương thức: <span style="font-weight:600" th:text="${order.paymentMethod}">-</span></div>
+        <div style="font-size:13px;margin-bottom:4px">Phí ship: <span style="font-weight:600" th:text="${order.shippingFee != null ? #numbers.formatInteger(order.shippingFee, 0, 'POINT') + 'đ' : '0đ'}">-</span></div>
+        <div style="font-size:14px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
+          Tổng cộng: <span style="font-weight:800;font-size:18px;color:var(--primary)" th:text="${#numbers.formatInteger(order.finalAmount, 0, 'POINT') + 'đ'}">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Status -->
+    <div style="margin-bottom:24px;display:flex;align-items:center;gap:12px">
+      <span style="font-size:13px;font-weight:600">Cập nhật trạng thái:</span>
+      <select id="statusSelect" class="btn btn-outline btn-sm" style="font-family:inherit;min-width:160px">
+        <option value="Pending" th:selected="${order.orderStatus == 'Pending'}">Chờ xác nhận</option>
+        <option value="Confirmed" th:selected="${order.orderStatus == 'Confirmed'}">Đã xác nhận</option>
+        <option value="Shipping" th:selected="${order.orderStatus == 'Shipping'}">Đang giao</option>
+        <option value="Delivered" th:selected="${order.orderStatus == 'Delivered'}">Đã giao</option>
+        <option value="Cancelled" th:selected="${order.orderStatus == 'Cancelled'}">Đã hủy</option>
+      </select>
+      <button class="btn btn-primary btn-sm" th:onclick="'updateOrderStatus(' + ${order.orderId} + ')'">
+        <i class="fas fa-save"></i> Lưu
+      </button>
+    </div>
+
+    <h3 style="font-size:16px;margin-bottom:12px">Sản phẩm đã đặt</h3>
+    <table>
+      <thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead>
+      <tbody>
+        <tr th:each="i : ${items}">
+          <td>
+            <div style="display:flex;align-items:center;gap:12px">
+              <img th:if="${i.productImage != null}" th:src="${i.productImage}" onerror="this.style.display='none'"
+                   style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"/>
+              <div>
+                <div style="font-weight:600" th:text="${i.productNameSnapshot ?: ('Sản phẩm #' + i.productId)}">-</div>
+                <div style="font-size:12px;color:var(--text2)" th:text="${i.variantSnapshot ?: 'Mặc định'}">-</div>
+              </div>
+            </div>
+          </td>
+          <td th:text="${#numbers.formatInteger(i.unitPrice, 0, 'POINT') + 'đ'}">-</td>
+          <td th:text="${i.quantity}">-</td>
+          <td style="font-weight:600" th:text="${#numbers.formatInteger(i.totalPrice, 0, 'POINT') + 'đ'}">-</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+  async function updateOrderStatus(id) {
+    const status = document.getElementById('statusSelect').value;
+    const d = await fetch('/admin/orders/'+id+'/update-status', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status})
+    }).then(r=>r.json());
+    if(d.status === 'SUCCESS') { toast('Cập nhật trạng thái thành công'); setTimeout(()=>location.reload(), 500); }
+    else toast(d.message || 'Lỗi', 'error');
+  }
+  </script>
+</div>
+</html>

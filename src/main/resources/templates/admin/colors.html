@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+  <div class="section-card">
+    <div class="section-header">
+      <h3>Màu sắc</h3>
+      <button class="btn btn-primary" onclick="openModal('colorModal')"><i class="fas fa-plus"></i>Thêm màu</button>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>Màu</th><th>Mã màu</th><th>Thao tác</th></tr></thead>
+      <tbody>
+        <tr th:if="${#lists.isEmpty(colors)}">
+          <td colspan="4" class="empty-state"><p>Chưa có màu</p></td>
+        </tr>
+        <tr th:each="c : ${colors}">
+          <td th:text="${c.id}">-</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span th:style="'width:20px;height:20px;border-radius:4px;background:' + (${c.code ?: '#ccc'}) + ';border:1px solid var(--border);display:inline-block'"></span>
+              <span th:text="${c.name}">-</span>
+            </div>
+          </td>
+          <td style="font-family:monospace" th:text="${c.code ?: '-'}">-</td>
+          <td>
+            <div class="action-btns">
+              <button class="btn btn-outline btn-sm btn-danger" th:onclick="'deleteColor(' + ${c.id} + ')'"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal-overlay" id="colorModal">
+    <div class="modal">
+      <div class="modal-header"><h3>Thêm màu sắc</h3><button class="modal-close" onclick="closeModal('colorModal')">&times;</button></div>
+      <form onsubmit="addColor(event)">
+        <div class="modal-body">
+          <div class="form-group"><label>Tên màu *</label><input name="name" required/></div>
+          <div class="form-group"><label>Mã màu (hex)</label><input name="code" placeholder="#FF0000"/></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('colorModal')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Thêm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  function openModal(id){ document.getElementById(id).classList.add('show'); }
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+  document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
+  async function addColor(e){
+    e.preventDefault(); const f=new FormData(e.target);
+    const d=await fetch('/admin/colors/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.get('name'),code:f.get('code')})}).then(r=>r.json());
+    if(d.status==='SUCCESS'){toast('Thêm màu thành công');setTimeout(()=>location.reload(),500);}else toast(d.message||'Lỗi','error');
+  }
+  async function deleteColor(id){
+    if(!confirm('Xóa màu này?'))return;
+    const d=await fetch('/admin/colors/delete/'+id,{method:'DELETE',headers:{'Content-Type':'application/json'}}).then(r=>r.json());
+    if(d.status==='SUCCESS'){toast('Đã xóa');setTimeout(()=>location.reload(),500);}else toast(d.message||'Lỗi','error');
+  }
+  </script>
+</div>
+</html>

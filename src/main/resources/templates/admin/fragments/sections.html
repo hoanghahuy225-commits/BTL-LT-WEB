@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="sections">
+    <!-- DASHBOARD -->
+    <div class="tab-content active" id="page-dashboard">
+      <div class="stats" id="statsCards">
+        <div class="stat-card"><div class="icon-wrap" style="background:#eff6ff;color:#3b82f6"><i class="fas fa-box"></i></div><div class="label">Sản phẩm</div><div class="value" id="statProducts">-</div></div>
+        <div class="stat-card"><div class="icon-wrap" style="background:#f5f3ff;color:#8b5cf6"><i class="fas fa-shopping-bag"></i></div><div class="label">Đơn hàng</div><div class="value" id="statOrders">-</div></div>
+        <div class="stat-card"><div class="icon-wrap" style="background:#ecfdf5;color:#10b981"><i class="fas fa-layer-group"></i></div><div class="label">Danh mục</div><div class="value" id="statCategories">-</div></div>
+        <div class="stat-card"><div class="icon-wrap" style="background:#fff7ed;color:#f59e0b"><i class="fas fa-tags"></i></div><div class="label">Thương hiệu</div><div class="value" id="statBrands">-</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="section-card">
+          <div class="section-header"><h3>Đơn hàng gần đây</h3><button class="btn btn-outline btn-sm" onclick="switchPage('orders')">Xem tất cả</button></div>
+          <table><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody id="recentOrders"><tr><td colspan="4" class="loading"><i class="fas fa-spinner"></i> Đang tải...</td></tr></tbody></table>
+        </div>
+        <div class="section-card">
+          <div class="section-header"><h3>Thống kê nhanh</h3></div>
+          <div style="padding:20px" id="quickStats">
+            <div style="display:flex;flex-direction:column;gap:14px" id="quickStatsContent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="tab-content" id="page-products">
+      <!-- Product List -->
+      <div id="productListView">
+        <div class="section-card">
+          <div class="section-header"><h3>Danh sách sản phẩm</h3><button class="btn btn-primary" onclick="openModal('productModal')"><i class="fas fa-plus"></i>Thêm sản phẩm</button></div>
+          <table><thead><tr><th>Sản phẩm</th><th>Giá gốc</th><th>Giá sale</th><th>Đã bán</th><th>Đánh giá</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="productTable"><tr><td colspan="7" class="loading"><i class="fas fa-spinner"></i> Đang tải...</td></tr></tbody></table>
+        </div>
+      </div>
+      <!-- Product Detail -->
+      <div id="productDetailView" style="display:none">
+        <button class="detail-back" onclick="backToProductList()"><i class="fas fa-arrow-left"></i> Quay lại danh sách</button>
+        <div class="section-card" style="padding:24px">
+          <div class="detail-top">
+            <img id="detailThumb" class="detail-thumb" src="" alt=""/>
+            <div class="detail-info">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                <span id="detailId" style="font-size:12px;color:var(--text2)"></span>
+                <span id="detailStatus" class="badge-status"></span>
+              </div>
+              <h2 id="detailName"></h2>
+              <div class="detail-meta" id="detailMeta"></div>
+              <div class="detail-prices" id="detailPrices"></div>
+              <div style="display:flex;gap:8px;margin-top:16px">
+                <button class="btn btn-primary btn-sm" onclick="openEditProduct()"><i class="fas fa-edit"></i> Chỉnh sửa</button>
+                <button id="btnDetailToggle" class="btn btn-outline btn-sm" style="font-weight: 500;" onclick="toggleProductStatus(currentProduct.id, currentProduct.isActive!==false)"></button>
+                <button class="btn btn-outline btn-sm btn-danger" onclick="deleteProduct(currentProduct.id)"><i class="fas fa-trash"></i> Xóa</button>
+              </div>
+              <div class="detail-desc" id="detailDesc"></div>
+            </div>
+          </div>
+          <!-- Detail Tabs -->
+          <div class="detail-tabs">
+            <button class="detail-tab active" onclick="switchDetailTab('variants',this)">Biến thể (Variants)</button>
+            <button class="detail-tab" onclick="switchDetailTab('images',this)">Ảnh sản phẩm</button>
+          </div>
+          <!-- Variants Tab -->
+          <div class="dtab active" id="dtab-variants">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <p style="font-size:13px;color:var(--text2)">Quản lý size, màu, tồn kho cho sản phẩm này</p>
+              <button class="btn btn-primary btn-sm" onclick="openAddVariant()"><i class="fas fa-plus"></i> Thêm variant</button>
+            </div>
+            <table><thead><tr><th>ID</th><th>Size</th><th>Màu</th><th>Tồn kho</th><th>Thao tác</th></tr></thead><tbody id="variantTable"><tr><td colspan="5" class="empty-state"><p>Chưa có variant</p></td></tr></tbody></table>
+          </div>
+          <!-- Images Tab -->
+          <div class="dtab" id="dtab-images">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <p style="font-size:13px;color:var(--text2)">Quản lý ảnh sản phẩm theo màu sắc</p>
+              <button class="btn btn-primary btn-sm" onclick="openModal('imageModal')"><i class="fas fa-plus"></i> Thêm ảnh</button>
+            </div>
+            <div class="img-grid" id="imageGrid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="tab-content" id="page-orders">
+      <!-- Order List -->
+      <div id="orderListView">
+        <div class="section-card">
+          <div class="section-header"><h3>Quản lý đơn hàng</h3><div style="display:flex;gap:8px"><select id="orderStatusFilter" class="btn btn-outline btn-sm" style="font-family:inherit" onchange="loadOrders()"><option value="">Tất cả</option><option value="Pending">Chờ xác nhận</option><option value="Confirmed">Đã xác nhận</option><option value="Shipping">Đang giao</option><option value="Delivered">Đã giao</option><option value="Cancelled">Đã hủy</option></select></div></div>
+          <table><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>SĐT</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="orderTable"><tr><td colspan="7" class="loading"><i class="fas fa-spinner"></i> Đang tải...</td></tr></tbody></table>
+          <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border)">
+            <span style="font-size:13px;color:var(--text2)" id="orderPagInfo">-</span>
+            <div style="display:flex;gap:6px" id="orderPagBtns"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Order Detail -->
+      <div id="orderDetailView" style="display:none">
+        <button class="detail-back" onclick="backToOrderList()"><i class="fas fa-arrow-left"></i> Quay lại danh sách đơn hàng</button>
+        <div class="section-card" style="padding:24px">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:20px">
+            <div>
+              <h2 style="font-size:20px;margin-bottom:6px">Chi tiết đơn hàng <span id="dtOrderCode" style="color:var(--primary)"></span></h2>
+              <div style="font-size:13px;color:var(--text2)">Ngày đặt: <span id="dtOrderDate"></span></div>
+            </div>
+            <div id="dtOrderStatus"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+            <div style="background:var(--bg);padding:16px;border-radius:12px;border:1px solid var(--border)">
+              <h4 style="font-size:14px;margin-bottom:12px;color:var(--text2)"><i class="fas fa-user"></i> Người nhận hàng</h4>
+              <div style="font-weight:600;margin-bottom:4px" id="dtOrderName"></div>
+              <div style="font-size:13px;margin-bottom:4px" id="dtOrderPhone"></div>
+              <div style="font-size:13px" id="dtOrderAddress"></div>
+            </div>
+            <div style="background:var(--bg);padding:16px;border-radius:12px;border:1px solid var(--border)">
+              <h4 style="font-size:14px;margin-bottom:12px;color:var(--text2)"><i class="fas fa-money-bill-wave"></i> Thanh toán</h4>
+              <div style="font-size:13px;margin-bottom:4px">Phương thức: <span style="font-weight:600" id="dtOrderPayment"></span></div>
+              <div style="font-size:13px;margin-bottom:4px">Phí ship: <span style="font-weight:600" id="dtOrderShippingFee"></span></div>
+              <div style="font-size:14px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">Tổng cộng: <span style="font-weight:800;font-size:18px;color:var(--primary)" id="dtOrderTotal"></span></div>
+            </div>
+          </div>
+          <h3 style="font-size:16px;margin-bottom:12px">Sản phẩm đã đặt</h3>
+          <table>
+            <thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead>
+            <tbody id="dtOrderItems"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="tab-content" id="page-categories">
+      <div class="section-card">
+        <div class="section-header"><h3>Danh mục sản phẩm</h3><button class="btn btn-primary" onclick="openModal('categoryModal')"><i class="fas fa-plus"></i>Thêm danh mục</button></div>
+        <table><thead><tr><th>ID</th><th>Tên danh mục</th><th>Mô tả</th></tr></thead><tbody id="categoryTable"><tr><td colspan="3" class="loading"><i class="fas fa-spinner"></i> Đang tải...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- BRANDS -->
+    <div class="tab-content" id="page-brands">
+      <div class="section-card">
+        <div class="section-header"><h3>Thương hiệu</h3><button class="btn btn-primary" onclick="openModal('brandModal')"><i class="fas fa-plus"></i>Thêm thương hiệu</button></div>
+        <table><thead><tr><th>ID</th><th>Tên thương hiệu</th><th>Mô tả</th></tr></thead><tbody id="brandTable"><tr><td colspan="3" class="loading"><i class="fas fa-spinner"></i> Đang tải...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- SPORTS -->
+    <div class="tab-content" id="page-sports">
+      <div class="section-card">
+        <div class="section-header"><h3>Môn thể thao</h3><button class="btn btn-primary" onclick="openModal('sportModal')"><i class="fas fa-plus"></i>Thêm môn TT</button></div>
+        <table><thead><tr><th>ID</th><th>Tên môn thể thao</th><th>Mô tả</th></tr></thead><tbody id="sportTable"><tr><td colspan="3" class="loading"><i class="fas fa-spinner"></i> Đang tải...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- COLORS -->
+    <div class="tab-content" id="page-colors">
+      <div class="section-card">
+        <div class="section-header"><h3>Màu sắc</h3><button class="btn btn-primary" onclick="openModal('colorModal')"><i class="fas fa-plus"></i>Thêm màu</button></div>
+        <table><thead><tr><th>ID</th><th>Màu</th><th>Mã màu</th><th>Thao tác</th></tr></thead><tbody id="colorTable"><tr><td colspan="4" class="loading"><i class="fas fa-spinner"></i> Đang tải...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- SIZES -->
+    <div class="tab-content" id="page-sizes">
+      <div class="section-card">
+        <div class="section-header"><h3>Kích thước</h3><button class="btn btn-primary" onclick="openModal('sizeModal')"><i class="fas fa-plus"></i>Thêm size</button></div>
+        <table><thead><tr><th>ID</th><th>Tên size</th><th>Thứ tự</th><th>Thao tác</th></tr></thead><tbody id="sizeTable"><tr><td colspan="4" class="loading"><i class="fas fa-spinner"></i> Đang tải...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- STAFF -->
+    <div class="tab-content" id="page-staff">
+      <div class="section-card">
+        <div class="section-header"><h3>Tạo tài khoản nhân viên</h3></div>
+        <div style="padding:24px;max-width:560px">
+          <form id="staffForm" onsubmit="createStaff(event)">
+            <div class="form-row"><div class="form-group"><label>Họ và tên *</label><input name="fullName" required/></div><div class="form-group"><label>Email *</label><input name="email" type="email" required/></div></div>
+            <div class="form-row"><div class="form-group"><label>Số điện thoại</label><input name="phone"/></div><div class="form-group"><label>Mật khẩu *</label><input name="password" type="password" required/></div></div>
+            <div class="form-row"><div class="form-group"><label>Ngày sinh</label><input name="dateOfBirth" type="date"/></div><div class="form-group"><label>Giới tính</label><select name="gender"><option value="">Chọn</option><option value="Nam">Nam</option><option value="Nữ">Nữ</option><option value="Khác">Khác</option></select></div></div>
+            <button type="submit" class="btn btn-primary" style="margin-top:8px"><i class="fas fa-user-plus"></i>Tạo tài khoản Staff</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+<script>
+// ===== DASHBOARD =====
+async function loadDashboard(){
+  const[pRes,cRes,bRes,oRes]=await Promise.all([api('/product/list'),api('/category'),api('/brand/list'),api('/admin/orders?page=0&size=5')]);
+  if(pRes.status==='SUCCESS'){document.getElementById('statProducts').textContent=pRes.data?.length||0;products=pRes.data||[];}
+  if(cRes.status==='SUCCESS'){document.getElementById('statCategories').textContent=cRes.data?.length||0;categories=cRes.data||[];}
+  if(bRes.status==='SUCCESS'){document.getElementById('statBrands').textContent=bRes.data?.length||0;brands=bRes.data||[];}
+  let orderList=[];
+  if(oRes.content){document.getElementById('statOrders').textContent=oRes.totalElements||0;orderList=oRes.content;}
+  else if(oRes.status==='SUCCESS'&&oRes.data){const d=oRes.data;document.getElementById('statOrders').textContent=d.totalElements||d.length||0;orderList=d.content||d;}
+  const tb=document.getElementById('recentOrders');
+  if(!tb) return;
+  if(orderList.length===0){tb.innerHTML='<tr><td colspan="4" class="empty-state"><i class="fas fa-inbox"></i><p>Chưa có đơn hàng</p></td></tr>';return;}
+  tb.innerHTML=orderList.slice(0,5).map(o=>`<tr><td><strong>${o.orderCode||'-'}</strong></td><td>${o.shippingRecipientName||'-'}</td><td>${fmt(o.finalAmount)}</td><td>${statusBadge(o.orderStatus)}</td></tr>`).join('');
+  const qc=document.getElementById('quickStatsContent');
+  if(!qc) return;
+  const pending=orderList.filter(o=>o.orderStatus==='Pending').length;
+  const delivered=orderList.filter(o=>o.orderStatus==='Delivered').length;
+  qc.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#fffbeb;border-radius:8px"><span style="font-size:13px;font-weight:600;color:#92400e"><i class="fas fa-clock" style="margin-right:6px"></i>Chờ xử lý</span><span style="font-size:20px;font-weight:800;color:#b45309">${pending}</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#ecfdf5;border-radius:8px"><span style="font-size:13px;font-weight:600;color:#065f46"><i class="fas fa-check-circle" style="margin-right:6px"></i>Đã giao</span><span style="font-size:20px;font-weight:800;color:#059669">${delivered}</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#eff6ff;border-radius:8px"><span style="font-size:13px;font-weight:600;color:#1e40af"><i class="fas fa-box" style="margin-right:6px"></i>Sản phẩm</span><span style="font-size:20px;font-weight:800;color:#2563eb">${products.length}</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#f5f3ff;border-radius:8px"><span style="font-size:13px;font-weight:600;color:#5b21b6"><i class="fas fa-layer-group" style="margin-right:6px"></i>Danh mục</span><span style="font-size:20px;font-weight:800;color:#7c3aed">${categories.length}</span></div>`;
+}
+
+// ===== PRODUCTS =====
+async function loadProducts(){
+  await ensureLookups();
+  const d=await api('/product/list');const tb=document.getElementById('productTable');
+  if(!tb) return;
+  if(d.status!=='SUCCESS'||!d.data?.length){tb.innerHTML='<tr><td colspan="7" class="empty-state"><i class="fas fa-box-open"></i><p>Chưa có sản phẩm</p></td></tr>';return;}
+  products=d.data;
+  tb.innerHTML=products.map(p=>`<tr style="cursor:pointer" onclick="viewProduct(${p.id})">
+    <td><div class="product-cell">${p.thumbnailUrl?`<img src="${p.thumbnailUrl}" class="product-thumb"/>`:`<div class="product-thumb" style="display:flex;align-items:center;justify-content:center;font-size:16px">📦</div>`}<div><div style="font-weight:600">${p.name}</div><div style="font-size:11px;color:var(--text2)">ID: ${p.id} · ${lookupName(categories,p.categoryId)}</div></div></div></td>
+    <td>${fmt(p.basePrice)}</td><td>${p.salePrice?fmt(p.salePrice):'-'}</td>
+    <td>${p.soldQuantity||0}</td><td>⭐ ${p.averageRating?p.averageRating.toFixed(1):'0'}</td>
+    <td><span class="badge-status ${p.isActive!==false?'badge-delivered':'badge-cancelled'}">${p.isActive!==false?'Đang bán':'Ẩn'}</span></td>
+    <td><div class="action-btns" onclick="event.stopPropagation()">
+      <button class="btn btn-outline btn-sm" title="Xem" onclick="viewProduct(${p.id})"><i class="fas fa-eye"></i></button>
+      <button class="btn btn-outline btn-sm btn-danger" onclick="deleteProduct(${p.id})"><i class="fas fa-trash"></i></button>
+    </div></td></tr>`).join('');
+}
+
+async function viewProduct(id){
+  await ensureLookups();
+  const p=products.find(x=>x.id===id); if(!p)return;
+  currentProduct=p;
+  document.getElementById('productListView').style.display='none';
+  document.getElementById('productDetailView').style.display='block';
+  document.getElementById('detailThumb').src=p.thumbnailUrl||'';
+  document.getElementById('detailThumb').style.display=p.thumbnailUrl?'block':'none';
+  document.getElementById('detailId').textContent='#'+p.id;
+  document.getElementById('detailName').textContent=p.name;
+  document.getElementById('detailStatus').className='badge-status '+(p.isActive!==false?'badge-delivered':'badge-cancelled');
+  document.getElementById('detailStatus').textContent=p.isActive!==false?'Đang bán':'Ẩn';
+  document.getElementById('detailMeta').innerHTML=`<span><i class="fas fa-layer-group" style="margin-right:4px"></i>${lookupName(categories,p.categoryId)}</span><span><i class="fas fa-tags" style="margin-right:4px"></i>${lookupName(brands,p.brandId,'Id','name')}</span><span><i class="fas fa-futbol" style="margin-right:4px"></i>${lookupName(sports,p.sportId)}</span><span>${p.gender||'Unisex'}</span>`;
+  const pr=document.getElementById('detailPrices');
+  if(p.salePrice) pr.innerHTML=`<span class="sale">${fmt(p.salePrice)}</span><span class="base">${fmt(p.basePrice)}</span>`;
+  else pr.innerHTML=`<span class="only">${fmt(p.basePrice)}</span>`;
+  document.getElementById('detailDesc').textContent=p.description||'Chưa có mô tả.';
+  
+  const btnToggle = document.getElementById('btnDetailToggle');
+  if(btnToggle) {
+    if(p.isActive !== false) {
+      btnToggle.innerHTML = '<i class="fas fa-eye-slash" style="margin-right:4px;"></i> Ẩn sản phẩm ngay';
+      btnToggle.style.color = '#fff';
+      btnToggle.style.backgroundColor = '#f59e0b';
+      btnToggle.style.borderColor = '#f59e0b';
+    } else {
+      btnToggle.innerHTML = '<i class="fas fa-eye" style="margin-right:4px;"></i> Hiện thị sản phẩm';
+      btnToggle.style.color = '#fff';
+      btnToggle.style.backgroundColor = '#10b981';
+      btnToggle.style.borderColor = '#10b981';
+    }
+  }
+
+  loadVariants(id); loadImages(id);
+}
+
+function backToProductList(){ document.getElementById('productDetailView').style.display='none'; document.getElementById('productListView').style.display='block'; currentProduct=null; }
+function switchDetailTab(tab,btn){ document.querySelectorAll('.detail-tab').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); document.getElementById('dtab-'+tab).classList.add('active'); }
+
+async function loadVariants(productId){
+  const data=await fetch('/variant/'+productId).then(r=>r.json()).catch(()=>[]);
+  productVariants=Array.isArray(data)?data:[];
+  const tb=document.getElementById('variantTable');
+  if(!tb) return;
+  if(!productVariants.length){tb.innerHTML='<tr><td colspan="5" class="empty-state"><i class="fas fa-cubes" style="font-size:28px;opacity:.2"></i><p>Chưa có biến thể</p></td></tr>';return;}
+  tb.innerHTML=productVariants.map(v=>{
+    const sizeName = v.sizeId ? lookupName(sizes,v.sizeId) : '<span style="color:var(--text2)">Mặc định</span>';
+    const color = colors.find(c=>c.id==v.colorId);
+    const colorDisplay = color 
+      ? `<div style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:3px;background:${color.code||'#ccc'};border:1px solid var(--border);display:inline-block"></span>${color.name}</div>`
+      : '<span style="color:var(--text2)">Mặc định</span>';
+    
+    return `<tr>
+      <td>${v.id}</td>
+      <td><span class="badge-status badge-confirmed">${sizeName}</span></td>
+      <td>${colorDisplay}</td>
+      <td><span style="font-weight:700;${v.stockQuantity<5?'color:var(--red)':''}">${v.stockQuantity}</span></td>
+      <td><div class="action-btns"><button class="btn btn-outline btn-sm" onclick="openEditVariant(${v.id})"><i class="fas fa-edit"></i></button><button class="btn btn-outline btn-sm btn-danger" onclick="deleteVariant(${v.id})"><i class="fas fa-trash"></i></button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadImages(productId){
+  const grid=document.getElementById('imageGrid'); if(!grid) return;
+  grid.innerHTML='<div style="padding:20px;text-align:center;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i></div>';
+  try{ const d=await api('/product-image/'+productId); productImages=(d.status==='SUCCESS' && d.data)?d.data:[]; }catch(e){productImages=[];}
+  renderImageGrid();
+}
+
+function renderImageGrid(){
+  const grid=document.getElementById('imageGrid'); if(!grid) return;
+  if(!productImages.length){ grid.innerHTML=`<div class="img-add-card" onclick="openModal('imageModal')"><i class="fas fa-plus" style="font-size:20px"></i>Thêm ảnh</div>`; return; }
+  grid.innerHTML=productImages.map(img=>{
+    const color=img.colorId?colors.find(c=>c.id==img.colorId):null;
+    const colorTag=color?`<span class="color-tag" style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:${color.code||'#ccc'};border:1px solid rgba(255,255,255,.4);display:inline-block"></span>${color.name}</span>`:'';
+    return `<div class="img-card"><img src="${img.imageUrl}" alt=""/>${colorTag}<button class="btn btn-danger btn-sm" style="position:absolute;top:6px;right:6px;padding:4px 8px" onclick="deleteImage(${img.id}, event)"><i class="fas fa-trash"></i></button></div>`;
+  }).join('')+`<div class="img-add-card" onclick="openModal('imageModal')"><i class="fas fa-plus" style="font-size:20px"></i>Thêm ảnh</div>`;
+}
+
+// ===== ORDERS =====
+async function loadOrders(){
+  const d=await api(`/admin/orders?page=${orderPage}&size=10&sort=orderDate,desc`);const tb=document.getElementById('orderTable');
+  if(!tb) return;
+  let list=[],total=0;
+  if(d.content){list=d.content;total=d.totalElements||0;}else if(d.status==='SUCCESS'&&d.data){list=d.data.content||d.data;total=d.data.totalElements||list.length;}
+  const filter=document.getElementById('orderStatusFilter').value;
+  if(filter) list=list.filter(o=>o.orderStatus===filter);
+  if(!list.length){tb.innerHTML='<tr><td colspan="7" class="empty-state"><i class="fas fa-inbox"></i><p>Không có đơn hàng</p></td></tr>';return;}
+  tb.innerHTML=list.map(o=>`<tr style="cursor:pointer" onclick="viewOrder(${o.orderId})">
+    <td><strong>${o.orderCode||'-'}</strong></td><td>${o.shippingRecipientName||'-'}</td><td>${o.shippingPhone||'-'}</td>
+    <td style="font-weight:600">${fmt(o.finalAmount)}</td><td>${o.paymentMethod||'-'}</td><td>${statusBadge(o.orderStatus)}</td>
+    <td><div class="action-btns" onclick="event.stopPropagation()">
+      <button class="btn btn-outline btn-sm" title="Xem" onclick="viewOrder(${o.orderId})"><i class="fas fa-eye"></i></button>
+      <select class="btn btn-outline btn-sm" style="font-family:inherit" onchange="updateOrderStatus(${o.orderId},this.value)">
+        <option value="" disabled selected>Đổi TT</option><option value="Pending">Chờ xác nhận</option><option value="Confirmed">Xác nhận</option><option value="Shipping">Đang giao</option><option value="Delivered">Đã giao</option><option value="Cancelled">Hủy</option>
+      </select>
+    </div></td></tr>`).join('');
+  document.getElementById('orderPagInfo').textContent=`Trang ${orderPage+1} / ${Math.ceil(total/10)||1} (${total} đơn)`;
+  const pb=document.getElementById('orderPagBtns');const tp=Math.ceil(total/10);
+  pb.innerHTML=(orderPage>0?`<button class="btn btn-outline btn-sm" onclick="orderPage--;loadOrders()">‹ Trước</button>`:'')+
+    (orderPage<tp-1?`<button class="btn btn-outline btn-sm" onclick="orderPage++;loadOrders()">Sau ›</button>`:'');
+  const badge=document.getElementById('orderBadge');const pending=list.filter(o=>o.orderStatus==='Pending').length;
+  if(badge){ if(pending>0){badge.style.display='inline';badge.textContent=pending;}else badge.style.display='none'; }
+}
+
+async function viewOrder(id){
+  const d=await api('/admin/orders/'+id); if(d.status!=='SUCCESS'||!d.data) return;
+  const {order,items}=d.data;
+  document.getElementById('orderListView').style.display='none';
+  document.getElementById('orderDetailView').style.display='block';
+  document.getElementById('dtOrderCode').textContent='#'+order.orderCode;
+  document.getElementById('dtOrderDate').textContent=order.orderDate?new Date(order.orderDate).toLocaleString('vi-VN'):'-';
+  document.getElementById('dtOrderStatus').innerHTML=statusBadge(order.orderStatus);
+  document.getElementById('dtOrderName').textContent=order.shippingRecipientName||'-';
+  document.getElementById('dtOrderPhone').textContent=order.shippingPhone||'-';
+  document.getElementById('dtOrderAddress').textContent=order.shippingAddressLine||'-';
+  document.getElementById('dtOrderPayment').textContent=order.paymentMethod||'-';
+  document.getElementById('dtOrderShippingFee').textContent=fmt(order.shippingFee);
+  document.getElementById('dtOrderTotal').textContent=fmt(order.finalAmount);
+  const tb=document.getElementById('dtOrderItems');
+  tb.innerHTML=items.map(i=>`<tr><td><div style="display:flex;align-items:center;gap:12px"><img src="${i.productImage||''}" onerror="this.style.display='none'" style="width:40px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--border)"/><div><div style="font-weight:600">${i.productNameSnapshot||'Sản phẩm #'+i.productId}</div><div style="font-size:12px;color:var(--text2)">${i.variantSnapshot||'Mặc định'}</div></div></div></td><td>${fmt(i.unitPrice)}</td><td>${i.quantity}</td><td style="font-weight:600">${fmt(i.totalPrice)}</td></tr>`).join('');
+}
+
+function backToOrderList(){ document.getElementById('orderDetailView').style.display='none'; document.getElementById('orderListView').style.display='block'; }
+
+// ===== CRUD LOADERS =====
+async function loadCategories(){const d=await api('/category');const tb=document.getElementById('categoryTable');if(!tb)return;if(d.status==='SUCCESS'&&d.data?.length){categories=d.data;tb.innerHTML=d.data.map(c=>`<tr><td>${c.id}</td><td style="font-weight:600">${c.name}</td><td style="color:var(--text2)">${c.description||'-'}</td></tr>`).join('');}else tb.innerHTML='<tr><td colspan="3" class="empty-state"><p>Chưa có danh mục</p></td></tr>';}
+async function loadBrands(){const d=await api('/brand/list');const tb=document.getElementById('brandTable');if(!tb)return;if(d.status==='SUCCESS'&&d.data?.length){brands=d.data;tb.innerHTML=d.data.map(b=>`<tr><td>${b.Id||b.id}</td><td style="font-weight:600">${b.name}</td><td style="color:var(--text2)">${b.description||'-'}</td></tr>`).join('');}else tb.innerHTML='<tr><td colspan="3" class="empty-state"><p>Chưa có thương hiệu</p></td></tr>';}
+async function loadSports(){const d=await api('/sport/list');const tb=document.getElementById('sportTable');if(!tb)return;if(d.status==='SUCCESS'&&d.data?.length){sports=d.data;tb.innerHTML=d.data.map(s=>`<tr><td>${s.id}</td><td style="font-weight:600">${s.name}</td><td style="color:var(--text2)">${s.description||'-'}</td></tr>`).join('');}else tb.innerHTML='<tr><td colspan="3" class="empty-state"><p>Chưa có môn thể thao</p></td></tr>';}
+async function loadColors(){const d=await api('/color/list');const tb=document.getElementById('colorTable');if(!tb)return;if(d.status==='SUCCESS'&&d.data?.length){colors=d.data;tb.innerHTML=d.data.map(c=>`<tr><td>${c.id}</td><td><div style="display:flex;align-items:center;gap:8px"><span style="width:20px;height:20px;border-radius:4px;background:${c.code||'#ccc'};border:1px solid var(--border);display:inline-block"></span>${c.name}</div></td><td style="font-family:monospace">${c.code||'-'}</td><td><div class="action-btns"><button class="btn btn-outline btn-sm btn-danger" onclick="deleteColor(${c.id})"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');}else tb.innerHTML='<tr><td colspan="4" class="empty-state"><p>Chưa có màu</p></td></tr>';}
+async function loadSizes(){const d=await api('/size/list');const tb=document.getElementById('sizeTable');if(!tb)return;if(d.status==='SUCCESS'&&d.data?.length){sizes=d.data;tb.innerHTML=d.data.map(s=>`<tr><td>${s.id}</td><td style="font-weight:600">${s.name}</td><td>${s.order??'-'}</td><td><div class="action-btns"><button class="btn btn-outline btn-sm btn-danger" onclick="deleteSize(${s.id})"><i class="fas fa-trash"></i></button></div></td></tr>`).join('');}else tb.innerHTML='<tr><td colspan="4" class="empty-state"><p>Chưa có size</p></td></tr>';}
+
+// ===== STAFF =====
+async function createStaff(e){
+  e.preventDefault();const f=new FormData(e.target);const body={};f.forEach((v,k)=>{if(v)body[k]=v;});
+  const d=await api('/admin/users/create-staff',{method:'POST',body:JSON.stringify(body)});
+  if(d.status==='SUCCESS'){toast('Tạo tài khoản Staff thành công');e.target.reset();}else toast(d.message||'Lỗi','error');
+}
+
+// ===== PRODUCT ACTIONS IN SECTION =====
+async function deleteProduct(id){ if(!confirm('Xóa sản phẩm này?'))return; const d=await api('/product/delete/'+id,{method:'DELETE'}); if(d.status==='SUCCESS'){toast('Đã xóa sản phẩm');backToProductList();loadProducts();}else toast(d.message||'Lỗi','error'); }
+function openEditProduct(){
+  if(!currentProduct)return; const p=currentProduct; fillEditSelects();
+  setTimeout(()=>{
+    document.getElementById('editName').value=p.name||''; document.getElementById('editCat').value=p.categoryId||''; document.getElementById('editBrand').value=p.brandId||''; document.getElementById('editSport').value=p.sportId||''; document.getElementById('editGender').value=p.gender||'Unisex'; document.getElementById('editBasePrice').value=p.basePrice||''; document.getElementById('editSalePrice').value=p.salePrice||''; document.getElementById('editSaleStart').value=p.saleStart?p.saleStart.substring(0,16):''; document.getElementById('editSaleEnd').value=p.saleEnd?p.saleEnd.substring(0,16):''; document.getElementById('editDesc').value=p.description||''; document.getElementById('editActive').value=p.isActive!==false?'true':'false';
+    const thumbPrev=document.getElementById('editThumbPreview'); if(p.thumbnailUrl){thumbPrev.src=p.thumbnailUrl;thumbPrev.style.display='block';}else{thumbPrev.style.display='none';}
+  },50);
+  openModal('editProductModal');
+}
+
+async function toggleProductStatus(id, currentActive) {
+    if(!confirm(currentActive ? 'Sản phẩm này sẽ không hiển thị trên cửa hàng nữa. Bạn có chắc chắn?' : 'Hiện sản phẩm này lên cửa hàng?')) return;
+    try {
+        const p = products.find(x => x.id === id);
+        if(!p) return;
+        
+        // Cần đảm bảo truyền đủ field bắt buộc cho ProductDto
+        const payload = {
+            name: p.name,
+            categoryId: p.categoryId,
+            sportId: p.sportId,
+            brandId: p.brandId,
+            gender: p.gender,
+            basePrice: p.basePrice,
+            salePrice: p.salePrice,
+            saleStart: p.saleStart,
+            saleEnd: p.saleEnd,
+            description: p.description,
+            thumbnailUrl: p.thumbnailUrl,
+            isActive: !currentActive 
+        };
+        
+        const d = await api('/product/update/'+id, { method: 'PUT', body: JSON.stringify(payload) });
+        if(d.status === 'SUCCESS') {
+            toast(currentActive ? 'Đã ẩn sản phẩm' : 'Đã hiện sản phẩm thành công', 'success');
+            p.isActive = !currentActive; 
+            
+            if(currentProduct && currentProduct.id === id) {
+                currentProduct.isActive = !currentActive;
+                viewProduct(id); 
+            }
+            loadProducts();
+        } else {
+            toast(d.message || 'Lỗi', 'error');
+        }
+    } catch(e) {
+        console.error(e);
+        toast('Lỗi server', 'error');
+    }
+}
+
+function openEditVariant(id){
+  const v=productVariants.find(x=>x.id===id);if(!v)return;
+  document.getElementById('variantEditId').value=v.id; document.getElementById('variantModalTitle').textContent='Chỉnh sửa biến thể';
+  fillVariantSelects();
+  setTimeout(()=>{document.getElementById('varSize').value=v.sizeId;document.getElementById('varColor').value=v.colorId;document.getElementById('varStock').value=v.stockQuantity;},50);
+  openModal('variantModal');
+}
+async function deleteVariant(id){if(!confirm('Xóa variant này?'))return;const d=await api('/variant/delete/'+id,{method:'DELETE'});if(d.status==='SUCCESS'){toast('Đã xóa variant');loadVariants(currentProduct.id);}else toast(d.message||'Lỗi','error');}
+async function deleteImage(id, e){ e.stopPropagation(); if(!confirm('Xóa ảnh này?'))return; const d=await api('/product-image/delete/'+id,{method:'DELETE'}); if(d.status==='SUCCESS'){ toast('Đã xóa ảnh'); loadImages(currentProduct.id); }else toast(d.message||'Lỗi','error'); }
+async function updateOrderStatus(id,status){ const d=await api(`/admin/orders/${id}/update-status`,{method:'PUT',body:JSON.stringify({status})}); if(d.status==='SUCCESS'){toast('Cập nhật trạng thái thành công');loadOrders();}else toast(d.message||'Lỗi','error'); }
+async function deleteColor(id){if(!confirm('Xóa màu này?'))return;const d=await api(`/admin/colors/delete/${id}`,{method:'DELETE'});if(d.status==='SUCCESS'){toast('Đã xóa');loadColors();}else toast(d.message||'Lỗi','error');}
+async function deleteSize(id){if(!confirm('Xóa size này?'))return;const d=await api(`/admin/sizes/delete/${id}`,{method:'DELETE'});if(d.status==='SUCCESS'){toast('Đã xóa');loadSizes();}else toast(d.message||'Lỗi','error');}
+</script>
+</div>
+</html>

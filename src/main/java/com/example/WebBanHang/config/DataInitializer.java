@@ -21,8 +21,17 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private ColorRepository colorRepo;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     @Override
     public void run(String... args) {
+        try {
+            jdbcTemplate.execute("ALTER TABLE order_items MODIFY variant_id INT NULL");
+            System.out.println("✅ [DataInitializer] Patched order_items.variant_id to allow NULL");
+        } catch (Exception e) {
+            System.out.println("⚠️ [DataInitializer] Patch order_items.variant_id skipped: " + e.getMessage());
+        }
         initSizes();
         initColors();
     }

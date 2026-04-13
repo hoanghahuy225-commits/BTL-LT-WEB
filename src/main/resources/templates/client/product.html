@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/client/header.css">
     <link rel="stylesheet" href="/css/client/footer.css">
     <link rel="stylesheet" href="/css/client/toast.css">
+    <link rel="stylesheet" href="/css/client/chat-widget.css">
     <style>
       /* ── Layout ── */
       .product-detail-container {
@@ -400,6 +401,9 @@
 
     <div th:replace="~{client/fragments/footer :: footer_fragment}"></div>
 
+    <!-- Chat Widget -->
+    <div th:replace="~{client/fragments/chat-widget :: chat_widget}"></div>
+
     <script th:inline="javascript">
       /*<![CDATA[*/
       const productVariants = [];
@@ -443,12 +447,16 @@
       let selectedVariantId = null;
       let availableStock = /*[[${product.soldQuantity != null ? 999 : 0}]]*/ 999; 
       let hasVariants = false;
+      let hasColors = false;
+      let hasSizes = false;
 
       function initVariants() {
         if (!productVariants || productVariants.length === 0) {
             const vc = document.getElementById('variant-selection-container');
             if (vc) vc.style.display = 'none';
             hasVariants = false;
+            hasColors = false;
+            hasSizes = false;
             availableStock = 999;
             return;
         }
@@ -457,24 +465,25 @@
         const uniqueColors = [...new Set(productVariants.map(v => v.colorId))].filter(c => c !== null).sort((a,b)=>a-b);
         const uniqueSizes  = [...new Set(productVariants.map(v => v.sizeId))].filter(s => s !== null).sort((a,b)=>a-b);
 
+        hasColors = uniqueColors.length > 0;
+        hasSizes = uniqueSizes.length > 0;
+
         const colorGroup     = document.getElementById('color-group');
         const colorContainer = document.getElementById('color-container');
         const sizeGroup      = document.getElementById('size-group');
         const sizeContainer  = document.getElementById('size-container');
         
-        if (uniqueColors.length > 0) {
+        if (hasColors) {
             colorGroup.style.display = 'block';
             colorContainer.innerHTML = uniqueColors.map(cId => {
-                // Dùng tên thực tế từ DB, fallback 'Màu X' nếu chưa có
                 const label = colorMap[cId] || ('Màu ' + cId);
                 return '<button type="button" class="variant-btn color-btn" data-color="' + cId + '" onclick="selectColor(' + cId + ')">' + label + '</button>';
             }).join('');
         }
         
-        if (uniqueSizes.length > 0) {
+        if (hasSizes) {
             sizeGroup.style.display = 'block';
             sizeContainer.innerHTML = uniqueSizes.map(sId => {
-                // Dùng tên thực tế từ DB, fallback 'Size X'
                 const label = sizeMap[sId] || ('Size ' + sId);
                 return '<button type="button" class="variant-btn size-btn" data-size="' + sId + '" onclick="selectSize(' + sId + ')">' + label + '</button>';
             }).join('');
@@ -522,9 +531,12 @@
       }
 
       function selectSize(sId) {
-        if (selectedColorId !== null) {
+        if (hasColors && selectedColorId !== null) {
             const variant = productVariants.find(v => v.colorId === selectedColorId && v.sizeId === sId);
             if (!variant || variant.stockQuantity <= 0) return; // hết hàng, không cho chọn
+        } else if (!hasColors) {
+            const variant = productVariants.find(v => v.sizeId === sId);
+            if (!variant || variant.stockQuantity <= 0) return; 
         }
         if (selectedSizeId === sId) selectedSizeId = null; // deselect nếu click lại
         else selectedSizeId = sId;
@@ -534,6 +546,22 @@
       function updateVariantUI() {
          document.querySelectorAll('.color-btn').forEach(btn => {
              const cId = Number(btn.getAttribute('data-color'));
+             let hasStock = false;
+             if (hasSizes && selectedSizeId !== null) {
+                 const variant = productVariants.find(v => v.colorId === cId && v.sizeId === selectedSizeId);
+                 hasStock = !!(variant && variant.stockQuantity > 0);
+             } else {
+                 const variants = productVariants.filter(v => v.colorId === cId);
+                 hasStock = variants.some(v => v.stockQuantity > 0);
+             }
+             
+             if (!hasStock && hasSizes && selectedSizeId !== null) {
+                 btn.classList.add('disabled');
+                 if (selectedColorId === cId) selectedColorId = null;
+             } else {
+                 btn.classList.remove('disabled');
+             }
+
              if (cId === selectedColorId) btn.classList.add('active');
              else btn.classList.remove('active');
          });
@@ -541,7 +569,7 @@
          document.querySelectorAll('.size-btn').forEach(btn => {
              const sId = Number(btn.getAttribute('data-size'));
              let hasStock = false;
-             if (selectedColorId !== null) {
+             if (hasColors && selectedColorId !== null) {
                  const variant = productVariants.find(v => v.colorId === selectedColorId && v.sizeId === sId);
                  hasStock = !!(variant && variant.stockQuantity > 0);
              } else {
@@ -549,7 +577,7 @@
                  hasStock = variants.some(v => v.stockQuantity > 0);
              }
              
-             if (!hasStock && selectedColorId !== null) {
+             if (!hasStock && hasColors && selectedColorId !== null) {
                  btn.classList.add('disabled');
                  if (selectedSizeId === sId) selectedSizeId = null;
              } else {
@@ -563,8 +591,14 @@
          selectedVariantId = null;
          const stockDisplay = document.getElementById('stock-display');
          
-         if (selectedColorId !== null && selectedSizeId !== null) {
-             const variant = productVariants.find(v => v.colorId === selectedColorId && v.sizeId === selectedSizeId);
+         const colorOk = (!hasColors || selectedColorId !== null);
+         const sizeOk = (!hasSizes || selectedSizeId !== null);
+
+         if (colorOk && sizeOk && hasVariants) {
+             const variant = productVariants.find(v => 
+                 (hasColors ? v.colorId === selectedColorId : true) && 
+                 (hasSizes ? v.sizeId === selectedSizeId : true)
+             );
              if (variant) {
                  selectedVariantId = variant.id;
                  availableStock = variant.stockQuantity;
@@ -577,7 +611,11 @@
              }
          } else {
              availableStock = 0;
-             stockDisplay.innerHTML = 'Vui lòng chọn phân loại hàng';
+             let msg = 'Vui lòng chọn phân loại hàng';
+             if (hasColors && hasSizes) msg = 'Vui lòng chọn màu sắc và kích cỡ';
+             else if (hasColors) msg = 'Vui lòng chọn màu sắc';
+             else if (hasSizes) msg = 'Vui lòng chọn kích cỡ';
+             stockDisplay.innerHTML = msg;
              stockDisplay.style.color = 'var(--gray-500)';
          }
          
@@ -616,7 +654,11 @@
           return;
         }
         if (hasVariants && selectedVariantId === null) {
-            showToast('Vui lòng chọn đủ Màu sắc và Kích cỡ', 'error');
+            let msg = 'Vui lòng chọn phân loại hàng';
+            if (hasColors && hasSizes) msg = 'Vui lòng chọn đủ Màu sắc và Kích cỡ';
+            else if (hasColors) msg = 'Vui lòng chọn Màu sắc';
+            else if (hasSizes) msg = 'Vui lòng chọn Kích cỡ';
+            showToast(msg, 'error');
             return;
         }
         if (availableStock <= 0) {
@@ -642,7 +684,11 @@
       /* ── Buy now ── */
       function handleBuyNow(btn) {
         if (hasVariants && selectedVariantId === null) {
-            showToast('Vui lòng chọn đủ Màu sắc và Kích cỡ', 'error');
+            let msg = 'Vui lòng chọn phân loại hàng';
+            if (hasColors && hasSizes) msg = 'Vui lòng chọn đủ Màu sắc và Kích cỡ';
+            else if (hasColors) msg = 'Vui lòng chọn Màu sắc';
+            else if (hasSizes) msg = 'Vui lòng chọn Kích cỡ';
+            showToast(msg, 'error');
             return;
         }
         if (availableStock <= 0) {

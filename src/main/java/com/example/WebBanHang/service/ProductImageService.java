@@ -51,4 +51,17 @@ public class ProductImageService {
                     .body(new ApiResponse<>("ERROR", "Lỗi khi cập nhật danh sách ảnh: " + e.getMessage(), null));
         }
     }
+
+    public ResponseEntity<ApiResponse<Void>> deleteProductImage(Integer id) {
+        try {
+            if (!productImageRepository.existsById(id)) {
+                return ResponseEntity.badRequest().body(new ApiResponse<>("ERROR", "Ảnh không tồn tại", null));
+            }
+            productImageRepository.deleteById(id);
+            return ResponseEntity.ok(new ApiResponse<>("SUCCESS", "Xóa ảnh thành công", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ApiResponse<>("ERROR", "Lỗi khi xóa ảnh: " + e.getMessage(), null));
+        }
+    }
 }

@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/css/client/header.css">
   <link rel="stylesheet" href="/css/client/footer.css">
   <link rel="stylesheet" href="/css/client/toast.css">
+  <link rel="stylesheet" href="/css/client/chat-widget.css">
   <style>
     /* ════════════════════════════════════════════════
        FILTER PAGE LAYOUT
@@ -532,6 +533,7 @@
     </button>
     <select class="sort-select" onchange="onSortChange(this.value)">
       <option value="newest"     th:selected="${sortBy == 'newest'}">Mới nhất</option>
+      <option value="best_seller" th:selected="${sortBy == 'best_seller'}">Bán chạy nhất</option>
       <option value="price_asc"  th:selected="${sortBy == 'price_asc'}">Giá: thấp → cao</option>
       <option value="price_desc" th:selected="${sortBy == 'price_desc'}">Giá: cao → thấp</option>
       <option value="name_asc"   th:selected="${sortBy == 'name_asc'}">Tên A → Z</option>
@@ -542,6 +544,25 @@
 
   <!-- ══════ SIDEBAR ══════ -->
   <aside class="sidebar" id="sidebar">
+
+    <!-- ƯU ĐÃI -->
+    <div class="filter-card" id="card-sale">
+      <div class="filter-card-header" onclick="toggleCard('card-sale')">
+        <h4>Ưu đãi</h4>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+      </div>
+      <div class="filter-card-body" style="padding: 0.5rem 0;">
+        <label class="filter-item">
+          <input type="checkbox" id="filter-sale" name="isOnSale" value="true"
+                 th:checked="${isOnSale}"
+                 onchange="onFilterChange()">
+          <span class="checkbox-box">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="3"><polyline points="1.5 6 4.5 9 10.5 3"/></svg>
+          </span>
+          <span class="filter-label">Đang giảm giá</span>
+        </label>
+      </div>
+    </div>
 
     <!-- TÌM KIẾM THEO TỪ KHÓA -->
     <div class="filter-card" id="card-keyword">
@@ -663,6 +684,7 @@
       </p>
       <select class="sort-select" id="sort-select" onchange="onSortChange(this.value)">
         <option value="newest"     th:selected="${sortBy == 'newest'}">Mới nhất</option>
+        <option value="best_seller" th:selected="${sortBy == 'best_seller'}">Bán chạy nhất</option>
         <option value="price_asc"  th:selected="${sortBy == 'price_asc'}">Giá: thấp → cao</option>
         <option value="price_desc" th:selected="${sortBy == 'price_desc'}">Giá: cao → thấp</option>
         <option value="name_asc"   th:selected="${sortBy == 'name_asc'}">Tên A → Z</option>
@@ -706,7 +728,7 @@
               <svg style="width: 14px; height: 14px; fill: #fadb14; stroke: #fadb14;" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
             </span>
             <span style="width: 1px; height: 12px; background-color: #ddd;"></span>
-            <span class="sold-quantity" th:text="'Đã bán ' + ${product.sold_quantity != null ? product.sold_quantity : 0}">Đã bán 0</span>
+            <span class="sold_quantity" th:text="'Đã bán ' + ${product.sold_quantity != null ? product.sold_quantity : 0}">Đã bán 0</span>
           </div>
           <div class="product-footer">
             <span class="product-price"
@@ -726,17 +748,17 @@
     <div th:if="${totalPages > 1}" class="pagination">
       <a class="page-btn"
          th:classappend="${currentPage == 0} ? ' disabled' : ''"
-         th:href="@{/filter(page=${currentPage-1},keyword=${keyword},categoryId=${selectedCategoryIds},sportId=${selectedSportIds},brandId=${selectedBrandIds},sortBy=${sortBy},minPrice=${minPrice},maxPrice=${maxPrice})}">
+         th:href="@{/filter(page=${currentPage-1},keyword=${keyword},categoryId=${selectedCategoryIds},sportId=${selectedSportIds},brandId=${selectedBrandIds},sortBy=${sortBy},minPrice=${minPrice},maxPrice=${maxPrice},isOnSale=${isOnSale})}">
         ← Trước
       </a>
       <a class="page-btn"
          th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
          th:classappend="${i == currentPage} ? ' active' : ''"
-         th:href="@{/filter(page=${i},keyword=${keyword},categoryId=${selectedCategoryIds},sportId=${selectedSportIds},brandId=${selectedBrandIds},sortBy=${sortBy},minPrice=${minPrice},maxPrice=${maxPrice})}"
+         th:href="@{/filter(page=${i},keyword=${keyword},categoryId=${selectedCategoryIds},sportId=${selectedSportIds},brandId=${selectedBrandIds},sortBy=${sortBy},minPrice=${minPrice},maxPrice=${maxPrice},isOnSale=${isOnSale})}"
          th:text="${i + 1}">1</a>
       <a class="page-btn"
          th:classappend="${currentPage >= totalPages - 1} ? ' disabled' : ''"
-         th:href="@{/filter(page=${currentPage+1},keyword=${keyword},categoryId=${selectedCategoryIds},sportId=${selectedSportIds},brandId=${selectedBrandIds},sortBy=${sortBy},minPrice=${minPrice},maxPrice=${maxPrice})}">
+         th:href="@{/filter(page=${currentPage+1},keyword=${keyword},categoryId=${selectedCategoryIds},sportId=${selectedSportIds},brandId=${selectedBrandIds},sortBy=${sortBy},minPrice=${minPrice},maxPrice=${maxPrice},isOnSale=${isOnSale})}">
         Tiếp →
       </a>
     </div>
@@ -746,6 +768,9 @@
 
 <!-- ══════════════════════ FOOTER ══════════════════════ -->
 <div th:replace="~{client/fragments/footer :: footer_fragment}"></div>
+
+<!-- Chat Widget -->
+<div th:replace="~{client/fragments/chat-widget :: chat_widget}"></div>
 
 
 <!-- ══════════════════════ SCRIPTS ══════════════════════ -->
@@ -774,12 +799,14 @@
     const minPrice = overrides.minPrice ?? document.getElementById('price-min').value.trim();
     const maxPrice = overrides.maxPrice ?? document.getElementById('price-max').value.trim();
     const keyword  = overrides.keyword  ?? document.getElementById('filter-keyword')?.value.trim();
+    const isOnSale = overrides.isOnSale ?? document.getElementById('filter-sale')?.checked;
 
     if (sortBy)   params.set('sortBy', sortBy);
     if (page > 0) params.set('page', page);
     if (minPrice) params.set('minPrice', minPrice);
     if (maxPrice) params.set('maxPrice', maxPrice);
     if (keyword)  params.set('keyword', keyword);
+    if (isOnSale) params.set('isOnSale', 'true');
 
     return '/filter?' + params.toString();
   }

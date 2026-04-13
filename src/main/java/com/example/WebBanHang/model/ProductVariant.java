@@ -23,11 +23,11 @@ public class ProductVariant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "variant_id")
     private Integer id; 
-    @Column(name = "product_id")
+    @Column(name = "product_id", nullable = false)
     private Integer productId; 
-    @Column(name = "size_id")
+    @Column(name = "size_id", nullable = true)
     private Integer sizeId; 
-    @Column(name = "color_id")
+    @Column(name = "color_id", nullable = true)
     private Integer colorId; 
     @Column(name = "stock_quantity")
     private Integer stockQuantity;  
@@ -35,5 +35,4 @@ public class ProductVariant {
     private LocalDateTime createdAt; 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt; 
-    
 }

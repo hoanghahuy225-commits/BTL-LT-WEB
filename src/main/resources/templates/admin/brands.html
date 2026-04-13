@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+  <div class="section-card">
+    <div class="section-header">
+      <h3>Thương hiệu</h3>
+      <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Thêm thương hiệu</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tên thương hiệu</th>
+          <th>Mô tả</th>
+          <th style="width: 150px; text-align: center;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:if="${#lists.isEmpty(brands)}">
+          <td colspan="4" class="empty-state"><p>Chưa có thương hiệu</p></td>
+        </tr>
+        <tr th:each="b : ${brands}">
+          <td th:text="${b.Id}">-</td>
+          <td style="font-weight:600" th:text="${b.name}">-</td>
+          <td style="color:var(--text2)" th:text="${b.description ?: '-'}">-</td>
+          <td style="text-align: center;">
+            <button class="btn btn-outline btn-sm edit-btn" 
+                    th:data-id="${b.Id}" 
+                    th:data-name="${b.name}" 
+                    th:data-description="${b.description ?: ''}"
+                    onclick="prepareEdit(this)" title="Sửa">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-outline btn-sm btn-danger" th:onclick="'deleteBrand(' + ${b.Id} + ')'" title="Xóa" style="color: var(--danger); border-color: var(--danger);">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal-overlay" id="brandModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Thêm thương hiệu</h3>
+        <button class="modal-close" onclick="closeModal('brandModal')">&times;</button>
+      </div>
+      <form id="brandForm" onsubmit="handleFormSubmit(event)">
+        <input type="hidden" id="brandId" name="id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Tên thương hiệu *</label>
+            <input name="name" id="brandName" required/>
+          </div>
+          <div class="form-group">
+            <label>Mô tả</label>
+            <textarea name="description" id="brandDesc"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('brandModal')">Hủy</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Thêm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  function openModal(id){ document.getElementById(id).classList.add('show'); }
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+  document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
+
+  function openAddModal() {
+    document.getElementById('modalTitle').innerText = 'Thêm thương hiệu';
+    document.getElementById('submitBtn').innerText = 'Thêm';
+    document.getElementById('brandId').value = '';
+    document.getElementById('brandName').value = '';
+    document.getElementById('brandDesc').value = '';
+    openModal('brandModal');
+  }
+
+  function prepareEdit(btn) {
+    const id = btn.getAttribute('data-id');
+    const name = btn.getAttribute('data-name');
+    const desc = btn.getAttribute('data-description');
+    
+    document.getElementById('modalTitle').innerText = 'Sửa thương hiệu';
+    document.getElementById('submitBtn').innerText = 'Cập nhật';
+    document.getElementById('brandId').value = id;
+    document.getElementById('brandName').value = name;
+    document.getElementById('brandDesc').value = desc;
+    openModal('brandModal');
+  }
+
+  async function handleFormSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('brandId').value;
+    const name = document.getElementById('brandName').value;
+    const description = document.getElementById('brandDesc').value;
+    
+    const url = id ? `/admin/brands/edit/${id}` : '/admin/brands/add';
+    
+    try {
+      const d = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({name, description})
+      }).then(r => r.json());
+      
+      if (d.status === 'SUCCESS') {
+        toast(id ? 'Cập nhật thành công' : 'Thêm thành công');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        toast(d.message || 'Lỗi', 'error');
+      }
+    } catch (err) {
+      toast('Lỗi kết nối', 'error');
+    }
+  }
+
+  async function deleteBrand(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa thương hiệu này?')) return;
+    try {
+      const d = await fetch(`/admin/brands/delete/${id}`, {
+        method: 'POST'
+      }).then(r => r.json());
+      if (d.status === 'SUCCESS') {
+        toast('Xóa thành công');
+        setTimeout(() => location.reload(), 500);
+      } else {
+        toast(d.message || 'Lỗi', 'error');
+      }
+    } catch (err) {
+      toast('Lỗi kết nối', 'error');
+    }
+  }
+  </script>
+</div>
+</html>

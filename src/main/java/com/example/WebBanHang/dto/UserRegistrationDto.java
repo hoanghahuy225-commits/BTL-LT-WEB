@@ -36,4 +36,6 @@ public class UserRegistrationDto {
 
     @NotBlank(message = "Giới tính không được để trống")
     private String gender;
+
+    private String role;
 }

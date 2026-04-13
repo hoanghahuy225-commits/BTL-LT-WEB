@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+  <div class="section-card">
+    <div class="section-header">
+      <h3>Kích thước</h3>
+      <button class="btn btn-primary" onclick="openModal('sizeModal')"><i class="fas fa-plus"></i>Thêm size</button>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>Tên size</th><th>Thứ tự</th><th>Thao tác</th></tr></thead>
+      <tbody>
+        <tr th:if="${#lists.isEmpty(sizes)}">
+          <td colspan="4" class="empty-state"><p>Chưa có size</p></td>
+        </tr>
+        <tr th:each="s : ${sizes}">
+          <td th:text="${s.id}">-</td>
+          <td style="font-weight:600" th:text="${s.name}">-</td>
+          <td th:text="${s.order ?: '-'}">-</td>
+          <td>
+            <div class="action-btns">
+              <button class="btn btn-outline btn-sm btn-danger" th:onclick="'deleteSize(' + ${s.id} + ')'"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal-overlay" id="sizeModal">
+    <div class="modal">
+      <div class="modal-header"><h3>Thêm kích thước</h3><button class="modal-close" onclick="closeModal('sizeModal')">&times;</button></div>
+      <form onsubmit="addSize(event)">
+        <div class="modal-body">
+          <div class="form-group"><label>Tên size *</label><input name="name" required/></div>
+          <div class="form-group"><label>Thứ tự</label><input name="order" type="number"/></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('sizeModal')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Thêm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  function openModal(id){ document.getElementById(id).classList.add('show'); }
+  function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+  document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
+  async function addSize(e){
+    e.preventDefault(); const f=new FormData(e.target);
+    const body={name:f.get('name')}; if(f.get('order')) body.order=Number(f.get('order'));
+    const d=await fetch('/admin/sizes/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json());
+    if(d.status==='SUCCESS'){toast('Thêm size thành công');setTimeout(()=>location.reload(),500);}else toast(d.message||'Lỗi','error');
+  }
+  async function deleteSize(id){
+    if(!confirm('Xóa size này?'))return;
+    const d=await fetch('/admin/sizes/delete/'+id,{method:'DELETE',headers:{'Content-Type':'application/json'}}).then(r=>r.json());
+    if(d.status==='SUCCESS'){toast('Đã xóa');setTimeout(()=>location.reload(),500);}else toast(d.message||'Lỗi','error');
+  }
+  </script>
+</div>
+</html>

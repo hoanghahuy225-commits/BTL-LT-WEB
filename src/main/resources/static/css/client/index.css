@@ -427,6 +427,84 @@
   background-color: #1d4ed8;
 }
 
+
+      /* Flash Sale Section */
+      .flash-sale {
+        padding: 4rem 1rem;
+        background-color: #fff5f5;
+        border-bottom: 1px solid #fee2e2;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .badge-sale {
+        background-color: #ef4444;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.875rem;
+        letter-spacing: 0.05em;
+      }
+
+      .section-header h2 {
+        font-size: 1.875rem;
+        font-weight: 800;
+        color: #1f2937;
+      }
+
+      .view-all {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #ef4444;
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.2s;
+      }
+
+      .view-all:hover {
+        transform: translateX(5px);
+      }
+
+      .sale-grid {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 1.5rem;
+      }
+
+      @media (min-width: 640px) {
+        .sale-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .sale-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+
+      .flash-sale .product-card {
+        border: 1px solid #fee2e2;
+      }
+
+      .flash-sale .product-price {
+        color: #ef4444;
+      }
+
       /* Newsletter Section */
       .newsletter {
         padding: 5rem 1rem;

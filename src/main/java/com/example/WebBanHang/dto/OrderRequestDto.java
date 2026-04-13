@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 
 @Data
 public class OrderRequestDto {
-    @NotBlank(message = "Người dùng không được để trống")
+    @jakarta.validation.constraints.NotNull(message = "Người dùng không được để trống")
     private Integer userId; 
     @NotBlank(message = "Người nhận không được để trống")
     private String shippingRecipientName;
@@ -15,9 +15,7 @@ public class OrderRequestDto {
     private String shippingPhone;
     @NotBlank(message = "Địa chỉ không được để trống")
     private String shippingAddressLine;
-    @NotBlank(message = "Phường không được để trống")
     private String shippingWard;
-    @NotBlank(message = "Thành phố không được để trống") 
     private String shippingCity;
     private String note;
     private Long totalAmount;

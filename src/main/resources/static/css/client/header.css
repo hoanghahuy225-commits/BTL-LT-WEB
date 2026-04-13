@@ -20,19 +20,20 @@ header .container {
 .logo {
   display: flex;
   align-items: center;
-  gap: .5rem;
-  font-size: 1.5rem;
+  gap: .4rem;
+  font-size: 1.25rem;
   font-weight: bold;
   background: linear-gradient(to right, var(--primary-blue), var(--primary-cyan));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-decoration: none;
+  flex-shrink: 0;
 }
-.logo svg { width: 2rem; height: 2rem; color: var(--primary-blue); }
+.logo svg { width: 1.5rem; height: 1.5rem; color: var(--primary-blue); }
 
-nav { display: none; gap: 2rem; }
-nav a { color: var(--gray-700); text-decoration: none; font-weight: 500; transition: color .3s; }
+nav { display: none; gap: 1.25rem; margin: 0 1rem; }
+nav a { color: var(--gray-700); text-decoration: none; font-weight: 500; transition: color .3s; white-space: nowrap; }
 nav a:hover { color: var(--primary-blue); }
 
 @media (min-width: 768px) { nav { display: flex; } }

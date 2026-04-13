@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+    <div class="section-card">
+        <div class="section-header">
+            <h3>Quản lý nhân viên</h3>
+            <button class="btn btn-primary btn-sm" onclick="openAddStaffModal()">
+                <i class="fas fa-plus"></i> Thêm nhân viên
+            </button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>Chức vụ</th>
+                    <th>Số điện thoại</th>
+                    <th>Ngày sinh</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(staffList)}">
+                    <td colspan="8" class="empty-state">
+                        <i class="fas fa-user-shield"></i>
+                        <p>Chưa có nhân viên nào</p>
+                    </td>
+                </tr>
+                <tr th:each="s : ${staffList}">
+                    <td th:text="${s.id}">1</td>
+                    <td><strong th:text="${s.fullName}">Nguyễn Văn A</strong></td>
+                    <td th:text="${s.email}">email@example.com</td>
+                    <td>
+                        <span class="badge-status" 
+                              th:classappend="${s.role == 'ADMIN'} ? 'badge-confirmed' : 'badge-shipping'"
+                              th:text="${s.role}">
+                        </span>
+                    </td>
+                    <td th:text="${s.phone ?: '-'}">-</td>
+                    <td th:text="${s.dateOfBirth != null ? #temporals.format(s.dateOfBirth, 'dd/MM/yyyy') : '-'}">-</td>
+                    <td>
+                        <span class="badge-status" 
+                              th:classappend="${s.isActive} ? 'badge-delivered' : 'badge-cancelled'"
+                              th:text="${s.isActive} ? 'Đang hoạt động' : 'Đã khóa'">
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn btn-outline btn-sm" title="Khóa/Mở khóa" th:onclick="'toggleUserStatus(' + ${s.id} + ')'">
+                                <i class="fas" th:classappend="${s.isActive} ? 'fa-lock' : 'fa-lock-open'"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- MODAL THÊM NHÂN VIÊN -->
+    <div id="addStaffModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Thêm nhân sự mới</h3>
+                <button class="close-btn" onclick="closeAddStaffModal()">&times;</button>
+            </div>
+            <form id="addStaffForm" onsubmit="submitAddStaff(event)" style="padding: 20px;">
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 600;">Họ và tên</label>
+                    <input type="text" name="fullName" class="btn btn-outline" style="width: 100%; text-align: left;" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Email</label>
+                        <input type="email" name="email" class="btn btn-outline" style="width: 100%; text-align: left;" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Mật khẩu</label>
+                        <input type="password" name="password" class="btn btn-outline" style="width: 100%; text-align: left;" required>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Số điện thoại</label>
+                        <input type="text" name="phone" class="btn btn-outline" style="width: 100%; text-align: left;">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Chức vụ</label>
+                        <select name="role" class="btn btn-outline" style="width: 100%; text-align: left;">
+                            <option value="STAFF">Nhân viên (STAFF)</option>
+                            <option value="ADMIN">Quản trị viên (ADMIN)</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Ngày sinh</label>
+                        <input type="date" name="dateOfBirth" class="btn btn-outline" style="width: 100%; text-align: left;">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Giới tính</label>
+                        <select name="gender" class="btn btn-outline" style="width: 100%; text-align: left;">
+                            <option value="Nam">Nam</option>
+                            <option value="Nữ">Nữ</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-outline" onclick="closeAddStaffModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Tạo tài khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    function openAddStaffModal() {
+        document.getElementById('addStaffModal').style.display = 'flex';
+    }
+    function closeAddStaffModal() {
+        document.getElementById('addStaffModal').style.display = 'none';
+        document.getElementById('addStaffForm').reset();
+    }
+    async function submitAddStaff(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+            const res = await fetch('/admin/users/create-staff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.status === 'SUCCESS') {
+                toast('Thêm nhân viên thành công');
+                setTimeout(() => location.reload(), 800);
+            } else {
+                toast(result.message || 'Có lỗi xảy ra', 'error');
+            }
+        } catch (error) {
+            toast('Lỗi kết nối server', 'error');
+        }
+    }
+
+    async function toggleUserStatus(id) {
+        if(!confirm('Bạn có chắc chắn muốn thay đổi trạng thái hoạt động của tài khoản này?')) return;
+        try {
+            const res = await fetch(`/admin/users/${id}/toggle-status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const result = await res.json();
+            if (result.status === 'SUCCESS') {
+                toast(result.message);
+                setTimeout(() => location.reload(), 800);
+            } else {
+                toast(result.message || 'Lỗi', 'error');
+            }
+        } catch (error) {
+            toast('Lỗi kết nối server', 'error');
+        }
+    }
+    </script>
+    
+    <style>
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        width: 90%;
+        animation: slideDown 0.3s ease-out;
+    }
+    .modal-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .close-btn {
+        background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text2);
+    }
+    @keyframes slideDown {
+        from { transform: translateY(-50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    </style>
+</div>
+</html>

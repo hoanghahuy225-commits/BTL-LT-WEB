@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="modals">
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="productModal"><div class="modal"><div class="modal-header"><h3>Thêm sản phẩm</h3><button class="modal-close" onclick="closeModal('productModal')">&times;</button></div><form onsubmit="addProduct(event)"><div class="modal-body">
+    <div class="form-group"><label>Tên sản phẩm *</label><input name="name" required/></div>
+    <div class="form-row"><div class="form-group"><label>Danh mục *</label><select name="categoryId" id="prodCat" required></select></div><div class="form-group"><label>Thương hiệu *</label><select name="brandId" id="prodBrand" required></select></div></div>
+    <div class="form-row"><div class="form-group"><label>Môn TT *</label><select name="sportId" id="prodSport" required></select></div><div class="form-group"><label>Giới tính</label><select name="gender"><option value="Unisex">Unisex</option><option value="Nam">Nam</option><option value="Nu">Nữ</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label>Giá gốc (VNĐ) *</label><input name="basePrice" type="number" min="0" required/></div><div class="form-group"><label>Giá sale</label><input name="salePrice" type="number" min="0"/></div></div>
+    <div class="form-row"><div class="form-group"><label>Sale bắt đầu</label><input name="saleStart" type="datetime-local"/></div><div class="form-group"><label>Sale kết thúc</label><input name="saleEnd" type="datetime-local"/></div></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Ảnh thumbnail (URL)</label>
+        <input name="thumbnailUrl" id="prodThumbUrl" placeholder="https://example.com/image.jpg"/>
+      </div>
+      <div class="form-group">
+        <label>Hoặc tải ảnh lên</label>
+        <input type="file" name="thumbnailFile" accept="image/*"/>
+      </div>
+    </div>
+    <div class="form-group"><label>Mô tả</label><textarea name="description"></textarea></div>
+  </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('productModal')">Hủy</button><button type="submit" class="btn btn-primary">Thêm sản phẩm</button></div></form></div></div>
+
+  <!-- Edit Product Modal -->
+  <div class="modal-overlay" id="editProductModal"><div class="modal"><div class="modal-header"><h3>Chỉnh sửa sản phẩm</h3><button class="modal-close" onclick="closeModal('editProductModal')">&times;</button></div><form onsubmit="updateProduct(event)"><div class="modal-body">
+    <div class="form-group"><label>Tên sản phẩm *</label><input name="name" id="editName" required/></div>
+    <div class="form-row"><div class="form-group"><label>Danh mục *</label><select name="categoryId" id="editCat" required></select></div><div class="form-group"><label>Thương hiệu *</label><select name="brandId" id="editBrand" required></select></div></div>
+    <div class="form-row"><div class="form-group"><label>Môn TT *</label><select name="sportId" id="editSport" required></select></div><div class="form-group"><label>Giới tính</label><select name="gender" id="editGender"><option value="Unisex">Unisex</option><option value="Nam">Nam</option><option value="Nu">Nữ</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label>Giá gốc (VNĐ) *</label><input name="basePrice" id="editBasePrice" type="number" min="0" required/></div><div class="form-group"><label>Giá sale</label><input name="salePrice" id="editSalePrice" type="number" min="0"/></div></div>
+    <div class="form-row"><div class="form-group"><label>Sale bắt đầu</label><input name="editSaleStart" id="editSaleStart" type="datetime-local"/></div><div class="form-group"><label>Sale kết thúc</label><input name="editSaleEnd" id="editSaleEnd" type="datetime-local"/></div></div>
+    <div class="form-group">
+      <label>Ảnh thumbnail</label>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:10px;align-items:center">
+          <img id="editThumbPreview" style="width:40px;height:40px;border-radius:6px;object-fit:cover;display:none;"/>
+          <input name="thumbnailUrl" id="editThumbUrl" placeholder="Nhập URL ảnh tại đây..." style="flex:1"/>
+        </div>
+        <div style="font-size:12px;color:var(--text2)">Hoặc tải lên file mới:</div>
+        <input type="file" name="thumbnailFile" accept="image/*"/>
+      </div>
+    </div>
+    <div class="form-group"><label>Mô tả</label><textarea name="description" id="editDesc"></textarea></div>
+    <div class="form-group"><label>Trạng thái</label><select name="isActive" id="editActive"><option value="true">Đang bán</option><option value="false">Ẩn</option></select></div>
+  </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('editProductModal')">Hủy</button><button type="submit" class="btn btn-primary">Lưu thay đổi</button></div></form></div></div>
+
+  <!-- Variant Modal -->
+  <div class="modal-overlay" id="variantModal"><div class="modal"><div class="modal-header"><h3 id="variantModalTitle">Thêm biến thể</h3><button class="modal-close" onclick="closeModal('variantModal')">&times;</button></div><form onsubmit="saveVariant(event)"><div class="modal-body">
+    <input type="hidden" name="variantId" id="variantEditId"/>
+    <div class="form-row"><div class="form-group"><label>Size</label><select name="sizeId" id="varSize"></select></div><div class="form-group"><label>Màu sắc</label><select name="colorId" id="varColor"></select></div></div>
+    <div class="form-group"><label>Số lượng tồn kho *</label><input name="stockQuantity" id="varStock" type="number" min="0" required/></div>
+  </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('variantModal')">Hủy</button><button type="submit" class="btn btn-primary">Lưu</button></div></form></div></div>
+
+  <!-- Image Modal -->
+  <div class="modal-overlay" id="imageModal"><div class="modal"><div class="modal-header"><h3>Thêm ảnh sản phẩm</h3><button class="modal-close" onclick="closeModal('imageModal')">&times;</button></div><form onsubmit="addImage(event)"><div class="modal-body">
+    <div class="form-group"><label>Chọn ảnh *</label><input type="file" name="imageFile" accept="image/*" required/></div>
+    <div class="form-group"><label>Màu sắc (tùy chọn)</label><select name="colorId" id="imgColor"><option value="">Không chọn</option></select></div>
+  </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('imageModal')">Hủy</button><button type="submit" class="btn btn-primary">Thêm ảnh</button></div></form></div></div>
+
+  <div class="modal-overlay" id="categoryModal"><div class="modal"><div class="modal-header"><h3>Thêm danh mục</h3><button class="modal-close" onclick="closeModal('categoryModal')">&times;</button></div><form onsubmit="addCategory(event)"><div class="modal-body">
+    <div class="form-group"><label>Tên danh mục *</label><input name="name" required/></div>
+    <div class="form-group"><label>Mô tả</label><textarea name="description"></textarea></div>
+  </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('categoryModal')">Hủy</button><button type="submit" class="btn btn-primary">Thêm</button></div></form></div></div>
+
+  <div class="modal-overlay" id="brandModal"><div class="modal"><div class="modal-header"><h3>Thêm thương hiệu</h3><button class="modal-close" onclick="closeModal('brandModal')">&times;</button></div><form onsubmit="addBrand(event)"><div class="modal-body">
+    <div class="form-group"><label>Tên thương hiệu *</label><input name="name" required/></div>
+    <div class="form-group"><label>Mô tả</label><textarea name="description"></textarea></div>
+  </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('brandModal')">Hủy</button><button type="submit" class="btn btn-primary">Thêm</button></div></form></div></div>
+
+  <div class="modal-overlay" id="sportModal"><div class="modal"><div class="modal-header"><h3>Thêm môn thể thao</h3><button class="modal-close" onclick="closeModal('sportModal')">&times;</button></div><form onsubmit="addSport(event)"><div class="modal-body">
+    <div class="form-group"><label>Tên môn TT *</label><input name="name" required/></div>
+    <div class="form-group"><label>Mô tả</label><textarea name="description"></textarea></div>
+  </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('sportModal')">Hủy</button><button type="submit" class="btn btn-primary">Thêm</button></div></form></div></div>
+
+  <div class="modal-overlay" id="colorModal"><div class="modal"><div class="modal-header"><h3>Thêm màu sắc</h3><button class="modal-close" onclick="closeModal('colorModal')">&times;</button></div><form onsubmit="addColor(event)"><div class="modal-body">
+    <div class="form-group"><label>Tên màu *</label><input name="name" required/></div>
+    <div class="form-group"><label>Mã màu (hex)</label><input name="code" placeholder="#FF0000"/></div>
+  </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('colorModal')">Hủy</button><button type="submit" class="btn btn-primary">Thêm</button></div></form></div></div>
+
+  <div class="modal-overlay" id="sizeModal"><div class="modal"><div class="modal-header"><h3>Thêm kích thước</h3><button class="modal-close" onclick="closeModal('sizeModal')">&times;</button></div><form onsubmit="addSize(event)"><div class="modal-body">
+    <div class="form-group"><label>Tên size *</label><input name="name" required/></div>
+    <div class="form-group"><label>Thứ tự</label><input name="order" type="number"/></div>
+  </div><div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeModal('sizeModal')">Hủy</button><button type="submit" class="btn btn-primary">Thêm</button></div></form></div></div>
+
+<script>
+// ===== MODAL UI LOGIC =====
+function openModal(id){
+  document.getElementById(id).classList.add('show');
+  if(id==='productModal') fillProductSelects();
+  if(id==='imageModal'){const s=document.getElementById('imgColor');if(s) s.innerHTML='<option value="">Không chọn</option>'+colors.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');}
+}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+
+function openAddVariant(){
+  document.getElementById('variantEditId').value='';
+  document.querySelector('#variantModal form').reset();
+  document.getElementById('variantModalTitle').textContent='Thêm biến thể';
+  fillVariantSelects();
+  openModal('variantModal');
+}
+
+function fillProductSelects(){
+  const fill=(id,arr,vk,lk)=>{const s=document.getElementById(id);if(!s)return; s.innerHTML='<option value="">Chọn</option>'+arr.map(i=>`<option value="${i[vk]}">${i[lk]}</option>`).join('');};
+  fill('prodCat',categories,'id','name');fill('prodBrand',brands,'Id','name');fill('prodSport',sports,'id','name');
+}
+function fillEditSelects(){
+  const fill=(id,arr,vk,lk)=>{const s=document.getElementById(id);if(!s)return; s.innerHTML='<option value="">Chọn</option>'+arr.map(i=>`<option value="${i[vk]}">${i[lk]}</option>`).join('');};
+  fill('editCat',categories,'id','name');fill('editBrand',brands,'Id','name');fill('editSport',sports,'id','name');
+}
+function fillVariantSelects(){
+  const fill=(id,arr,vk,lk)=>{const s=document.getElementById(id);if(!s)return; s.innerHTML='<option value="">Không chọn</option>'+arr.map(i=>`<option value="${i[vk]}">${i[lk]}</option>`).join('');};
+  fill('varSize',sizes,'id','name');fill('varColor',colors,'id','name');
+}
+
+// ===== FORM SUBMISSIONS =====
+async function addProduct(e){
+  e.preventDefault();const f=new FormData(e.target);const body={};
+  f.forEach((v,k)=>{if(v&&k!=='thumbnailFile')body[k]=['categoryId','sportId','brandId','basePrice','salePrice'].includes(k)?Number(v):v;});
+  if(!body.isActive)body.isActive=true;
+  const file=f.get('thumbnailFile');
+  if(file&&file.size>0){ const url=await uploadFileToApi(file); if(url) body.thumbnailUrl=url; }
+  const d=await api('/product/add',{method:'POST',body:JSON.stringify(body)});
+  if(d.status==='SUCCESS'){toast('Thêm sản phẩm thành công');closeModal('productModal');e.target.reset();loadProducts();}else toast(d.message||'Lỗi','error');
+}
+
+async function updateProduct(e){
+  e.preventDefault();const f=new FormData(e.target);const body={};
+  f.forEach((v,k)=>{ if(!v||k==='thumbnailFile')return; if(['categoryId','sportId','brandId','basePrice','salePrice'].includes(k)) body[k]=Number(v); else if(k==='isActive') body[k]=v==='true'; else body[k]=v; });
+  const file=f.get('thumbnailFile');
+  if(file&&file.size>0){ const url=await uploadFileToApi(file); if(url) body.thumbnailUrl=url; }
+  const d=await api('/product/update/'+currentProduct.id,{method:'PUT',body:JSON.stringify(body)});
+  if(d.status==='SUCCESS'){
+    toast('Cập nhật sản phẩm thành công');closeModal('editProductModal');
+    const updated=d.data||{...currentProduct,...body};
+    const idx=products.findIndex(x=>x.id===currentProduct.id);
+    if(idx>=0) products[idx]={...products[idx],...updated};
+    currentProduct=products[idx]||updated;
+    viewProduct(currentProduct.id);
+  }else toast(d.message||'Lỗi','error');
+}
+
+async function saveVariant(e){
+  e.preventDefault();
+  const f=new FormData(e.target); const editId=f.get('variantId');
+  const sizeId = f.get('sizeId');
+  const colorId = f.get('colorId');
+  const body={
+    productId:currentProduct.id,
+    sizeId: sizeId ? Number(sizeId) : null,
+    colorId: colorId ? Number(colorId) : null,
+    stockQuantity: Number(f.get('stockQuantity'))
+  };
+  let d;
+  if(editId){d=await api('/variant/update/'+editId,{method:'PUT',body:JSON.stringify(body)});}
+  else{d=await api('/variant/add',{method:'POST',body:JSON.stringify(body)});}
+  if(d.status==='SUCCESS'){toast(editId?'Cập nhật variant thành công':'Thêm variant thành công');closeModal('variantModal');e.target.reset();loadVariants(currentProduct.id);}else toast(d.message||'Lỗi','error');
+}
+
+async function addImage(e){
+  e.preventDefault(); const f=new FormData(e.target); const file=f.get('imageFile');
+  if(!file||file.size===0)return toast('Vui lòng chọn ảnh','error');
+  const url=await uploadFileToApi(file); if(!url)return toast('Tải ảnh thất bại','error');
+  const img={productId:currentProduct.id,imageUrl:url};
+  const colorId=f.get('colorId'); if(colorId) img.colorId=Number(colorId);
+  const d=await api('/product-image/add',{method:'POST',body:JSON.stringify([img])});
+  if(d.status==='SUCCESS'){ toast('Thêm ảnh thành công');closeModal('imageModal');e.target.reset();loadImages(currentProduct.id); }else toast(d.message||'Lỗi','error');
+}
+
+async function addCategory(e){e.preventDefault();const f=new FormData(e.target);const d=await api('/admin/categories/add',{method:'POST',body:JSON.stringify({name:f.get('name'),description:f.get('description')})});if(d.status==='SUCCESS'){toast('Thêm danh mục thành công');closeModal('categoryModal');e.target.reset();loadCategories();}else toast(d.message||'Lỗi','error');}
+async function addBrand(e){e.preventDefault();const f=new FormData(e.target);const d=await api('/admin/brands/add',{method:'POST',body:JSON.stringify({name:f.get('name'),description:f.get('description')})});if(d.status==='SUCCESS'){toast('Thêm thương hiệu thành công');closeModal('brandModal');e.target.reset();loadBrands();}else toast(d.message||'Lỗi','error');}
+async function addSport(e){e.preventDefault();const f=new FormData(e.target);const d=await api('/admin/sports/add',{method:'POST',body:JSON.stringify({name:f.get('name'),description:f.get('description')})});if(d.status==='SUCCESS'){toast('Thêm thành công');closeModal('sportModal');e.target.reset();loadSports();}else toast(d.message||'Lỗi','error');}
+async function addColor(e){e.preventDefault();const f=new FormData(e.target);const d=await api('/admin/colors/add',{method:'POST',body:JSON.stringify({name:f.get('name'),code:f.get('code')})});if(d.status==='SUCCESS'){toast('Thêm màu thành công');closeModal('colorModal');e.target.reset();loadColors();}else toast(d.message||'Lỗi','error');}
+async function addSize(e){e.preventDefault();const f=new FormData(e.target);const body={name:f.get('name')};if(f.get('order'))body.order=Number(f.get('order'));const d=await api('/admin/sizes/add',{method:'POST',body:JSON.stringify(body)});if(d.status==='SUCCESS'){toast('Thêm size thành công');closeModal('sizeModal');e.target.reset();loadSizes();}else toast(d.message||'Lỗi','error');}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');});});
+</script>
+</div>
+</html>

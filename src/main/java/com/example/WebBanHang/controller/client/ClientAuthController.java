@@ -73,9 +73,33 @@ public class ClientAuthController {
         return userService.logout(session);
     }
 
+    @GetMapping("/logout")
+    public String logoutGet(HttpSession session) {
+        userService.logout(session);
+        return "redirect:/login";
+    }
+
     @GetMapping("/profile")
+    public String getProfile(Model model, HttpSession session) {
+        User user = (User) session.getAttribute("currentUser");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("user", user);
+        return "client/profile";
+    }
+
+    @PostMapping("/profile/update")
     @ResponseBody
-    public ResponseEntity<ApiResponse<Object>> getProfile(HttpSession session) {
-        return userService.getProfile(session);
+    public ResponseEntity<ApiResponse<Object>> updateProfile(@RequestBody User updatedData, HttpSession session) {
+        return userService.updateProfile(updatedData, session);
+    }
+
+    @PostMapping("/profile/change-password")
+    @ResponseBody
+    public ResponseEntity<ApiResponse<Object>> changePassword(@RequestBody java.util.Map<String, String> passwords, HttpSession session) {
+        String oldPassword = passwords.get("oldPassword");
+        String newPassword = passwords.get("newPassword");
+        return userService.changePassword(oldPassword, newPassword, session);
     }
 }

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+  <div class="section-card">
+    <div class="section-header">
+      <h3>Danh sách sản phẩm</h3>
+      <a th:href="@{/admin/products/add}" class="btn btn-primary"><i class="fas fa-plus"></i>Thêm sản phẩm</a>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Sản phẩm</th><th>Giá gốc</th><th>Giá sale</th><th>Đã bán</th><th>Đánh giá</th><th>Trạng thái</th><th>Thao tác</th></tr>
+      </thead>
+      <tbody>
+        <tr th:if="${#lists.isEmpty(products)}">
+          <td colspan="7" class="empty-state"><i class="fas fa-box-open"></i><p>Chưa có sản phẩm</p></td>
+        </tr>
+        <tr th:each="p : ${products}" style="cursor:pointer" th:onclick="'window.location.href=\'/admin/products/' + ${p.id} + '\''">
+          <td>
+            <div class="product-cell">
+              <img th:if="${p.thumbnailUrl != null}" th:src="${p.thumbnailUrl}" class="product-thumb" alt=""/>
+              <div th:if="${p.thumbnailUrl == null}" class="product-thumb" style="display:flex;align-items:center;justify-content:center;font-size:16px">📦</div>
+              <div>
+                <div style="font-weight:600" th:text="${p.name}">-</div>
+                <div style="font-size:11px;color:var(--text2)">
+                  ID: <span th:text="${p.id}"></span> ·
+                  <span th:text="${categoryMap[p.categoryId] != null ? categoryMap[p.categoryId] : '-'}">-</span>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td th:text="${#numbers.formatInteger(p.basePrice, 0, 'POINT') + 'đ'}">-</td>
+          <td th:text="${p.salePrice != null ? #numbers.formatInteger(p.salePrice, 0, 'POINT') + 'đ' : '-'}">-</td>
+          <td th:text="${p.soldQuantity != null ? p.soldQuantity : 0}">0</td>
+          <td>⭐ <span th:text="${p.averageRating != null ? #numbers.formatDecimal(p.averageRating, 1, 1) : '0'}">0</span></td>
+          <td>
+            <span class="badge-status"
+                  style="cursor:pointer"
+                  th:onclick="'event.stopPropagation(); toggleProductStatus(' + ${p.id} + ')'"
+                  th:title="'Click để ' + ${p.isActive != false ? 'Ẩn' : 'Hiện'}"
+                  th:classappend="${p.isActive != false ? 'badge-delivered' : 'badge-cancelled'}"
+                  th:text="${p.isActive != false ? 'Đang bán' : 'Ẩn'}">-</span>
+          </td>
+          <td>
+            <div class="action-btns" onclick="event.stopPropagation()">
+              <a th:href="@{/admin/products/{id}(id=${p.id})}" class="btn btn-outline btn-sm" title="Xem"><i class="fas fa-eye"></i></a>
+              <button class="btn btn-outline btn-sm btn-danger" th:onclick="'deleteProduct(' + ${p.id} + ')'" title="Xóa" style="color: var(--danger); border-color: var(--danger);"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+  async function toggleProductStatus(id) {
+    try {
+      const r = await fetch('/admin/products/'+id+'/toggle-status', {method:'PUT'});
+      const d = await r.json();
+      if(d.status === 'SUCCESS') { 
+        toast(d.message); 
+        setTimeout(() => location.reload(), 500); 
+      } else {
+        toast(d.message || 'Lỗi', 'error');
+      }
+    } catch(e) { toast('Lỗi server', 'error'); }
+  }
+
+  async function deleteProduct(id) {
+    if(!confirm('Xóa sản phẩm này?')) return;
+    try {
+      const r = await fetch('/admin/products/'+id+'/delete', {method:'DELETE'});
+      const d = await r.json();
+      if(d.status === 'SUCCESS') { toast('Đã xóa sản phẩm'); setTimeout(() => location.reload(), 500); }
+      else toast(d.message || 'Lỗi', 'error');
+    } catch(e) { toast('Lỗi server', 'error'); }
+  }
+  </script>
+</div>
+</html>

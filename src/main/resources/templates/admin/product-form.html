@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+  <a th:href="${product != null && product.id != null ? '/admin/products/' + product.id : '/admin/products'}" class="detail-back">
+    <i class="fas fa-arrow-left"></i> Quay lại
+  </a>
+
+  <div class="section-card" style="padding:24px">
+    <h3 th:text="${product != null && product.id != null ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}" style="margin-bottom:20px">Thêm sản phẩm mới</h3>
+
+    <form th:action="${product != null && product.id != null ? '/admin/products/' + product.id + '/update' : '/admin/products/add'}"
+          method="post" enctype="multipart/form-data" style="max-width:700px">
+
+      <div class="form-group">
+        <label>Tên sản phẩm *</label>
+        <input name="name" th:value="${product != null ? product.name : ''}" required/>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Danh mục *</label>
+          <select name="categoryId" required>
+            <option value="">Chọn</option>
+            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"
+                    th:selected="${product != null && product.categoryId == c.id}">-</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Thương hiệu *</label>
+          <select name="brandId" required>
+            <option value="">Chọn</option>
+            <option th:each="b : ${brands}" th:value="${b.Id}" th:text="${b.name}"
+                    th:selected="${product != null && product.brandId == b.Id}">-</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Môn TT *</label>
+          <select name="sportId" required>
+            <option value="">Chọn</option>
+            <option th:each="s : ${sports}" th:value="${s.id}" th:text="${s.name}"
+                    th:selected="${product != null && product.sportId == s.id}">-</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Giới tính</label>
+          <select name="gender">
+            <option value="Unisex" th:selected="${product == null || product.gender == null || product.gender.name() == 'Unisex'}">Unisex</option>
+            <option value="Nam" th:selected="${product != null && product.gender != null && product.gender.name() == 'Nam'}">Nam</option>
+            <option value="Nu" th:selected="${product != null && product.gender != null && product.gender.name() == 'Nu'}">Nữ</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Giá gốc (VNĐ) *</label>
+          <input name="basePrice" type="number" min="0" th:value="${product != null ? product.basePrice : ''}" required/>
+        </div>
+        <div class="form-group">
+          <label>Giá sale</label>
+          <input name="salePrice" type="number" min="0" th:value="${product != null ? product.salePrice : ''}"/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sale bắt đầu</label>
+          <input name="saleStart" type="datetime-local" th:value="${product != null && product.saleStart != null ? #temporals.format(product.saleStart, 'yyyy-MM-dd''T''HH:mm') : ''}"/>
+        </div>
+        <div class="form-group">
+          <label>Sale kết thúc</label>
+          <input name="saleEnd" type="datetime-local" th:value="${product != null && product.saleEnd != null ? #temporals.format(product.saleEnd, 'yyyy-MM-dd''T''HH:mm') : ''}"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Ảnh thumbnail</label>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;gap:10px;align-items:center">
+            <img th:if="${product != null && product.thumbnailUrl != null}" th:src="${product.thumbnailUrl}"
+                 style="width:40px;height:40px;border-radius:6px;object-fit:cover;"/>
+            <input name="thumbnailUrl" th:value="${product != null ? product.thumbnailUrl : ''}" placeholder="Nhập URL ảnh..." style="flex:1"/>
+          </div>
+          <div style="font-size:12px;color:var(--text2)">Hoặc tải lên file mới:</div>
+          <input type="file" name="thumbnailFile" accept="image/*"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Mô tả</label>
+        <textarea name="description" th:text="${product != null ? product.description : ''}"></textarea>
+      </div>
+
+      <div class="form-group" th:if="${product != null && product.id != null}">
+        <label>Trạng thái</label>
+        <select name="isActive">
+          <option value="true" th:selected="${product.isActive != false}">Đang bán</option>
+          <option value="false" th:selected="${product.isActive == false}">Ẩn</option>
+        </select>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button type="submit" class="btn btn-primary">
+          <i th:class="${product != null && product.id != null ? 'fas fa-save' : 'fas fa-plus'}"></i>
+          <span th:text="${product != null && product.id != null ? 'Lưu thay đổi' : 'Thêm sản phẩm'}">Thêm sản phẩm</span>
+        </button>
+        <a th:href="${product != null && product.id != null ? '/admin/products/' + product.id : '/admin/products'}" class="btn btn-outline">Hủy</a>
+      </div>
+    </form>
+  </div>
+</div>
+</html>

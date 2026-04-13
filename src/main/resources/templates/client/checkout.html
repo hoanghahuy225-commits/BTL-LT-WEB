@@ -826,38 +826,46 @@
 
         let address = null;
         if (!usingNew && addresses && addresses.length > 0) {
-            address = addresses.find(a => a.Id === deliveryAddressId || a.id === deliveryAddressId) || null;
+            address = addresses.find(a => (a.Id ?? a.id) == deliveryAddressId) || null;
         }
+
+        // Xác định thông tin giao hàng
+        const recipientName = newAddress?.recipient_name || address?.recipient_name || address?.name;
+        const recipientPhone = newAddress?.phone || address?.phone;
+        const addrLine = newAddress?.addressLine || address?.addressLine;
+        const addrWard = newAddress?.ward || address?.ward || '';
+        const addrCity = newAddress?.city || address?.city || '';
+
+        // Validate trước khi gửi
+        if (!recipientName) { showToast('Không lấy được tên người nhận. Vui lòng chọn lại địa chỉ.', 'error'); return; }
+        if (!recipientPhone) { showToast('Không lấy được số điện thoại. Vui lòng chọn lại địa chỉ.', 'error'); return; }
+        if (!addrLine) { showToast('Không lấy được địa chỉ giao hàng. Vui lòng chọn lại địa chỉ.', 'error'); return; }
 
         const note = document.getElementById('order-note')?.value?.trim() || "";
         const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || "COD";
         const paymentStatus = "Pending";
         const orderStatus = "Pending";
-        const createdAt = new Date().toISOString();
-        const updatedAt = new Date().toISOString();
         const discountAmount = 0;
 
         showToast('Đang xử lý đặt hàng...', 'info');
         const payload = {
-                    userId: customerId,
-                    shippingRecipientName: newAddress?.recipient_name || address?.recipient_name || address?.name,
-                    shippingPhone: newAddress?.phone || address?.phone,
-                    shippingAddressLine: newAddress?.addressLine || address?.addressLine,
-                    shippingWard: newAddress?.ward || address?.ward,
-                    shippingCity: newAddress?.city || address?.city,
-                    note: note,
-                    totalAmount: totalAmount,
-                    shippingFee: shippingFee,
-                    discountAmount: discountAmount,
-                    finalAmount: finalAmount,
-                    paymentMethod: paymentMethod,
-                    paymentStatus: paymentStatus,
-                    orderStatus: orderStatus,
-                    createdAt: createdAt,
-                    updatedAt: updatedAt,
-                    items: items
-                } 
-                console.log(payload );
+            userId: customerId,
+            shippingRecipientName: recipientName,
+            shippingPhone: recipientPhone,
+            shippingAddressLine: addrLine,
+            shippingWard: addrWard,
+            shippingCity: addrCity,
+            note: note,
+            totalAmount: totalAmount,
+            shippingFee: shippingFee,
+            discountAmount: discountAmount,
+            finalAmount: finalAmount,
+            paymentMethod: paymentMethod,
+            paymentStatus: paymentStatus,
+            orderStatus: orderStatus,
+            items: items
+        };
+        console.log('Order payload:', payload);
         try {
             const res = await fetch("/orders/add", {
                 method: "POST",
@@ -867,13 +875,15 @@
                 body: JSON.stringify(payload )
             });
             
-            console.log("Order Response:", res);
+            console.log("Order Response:", res.status);
             if (res.ok) {
                 const data = await res.json();
                 showToast('Đặt hàng thành công! Cảm ơn bạn đã mua hàng 🎉', 'success');
-                setTimeout(() => window.location.href = `/orders/success?orderCode=${data.orderCode}`, 2000); // Redirect to success page
+                setTimeout(() => window.location.href = `/orders/success?orderCode=${data.orderCode}`, 2000);
             } else {
-                showToast('Có lỗi xảy ra khi tạo đơn hàng, vui lòng thử lại!', 'error');
+                const errData = await res.json().catch(() => null);
+                const errMsg = errData?.message || 'Có lỗi xảy ra khi tạo đơn hàng, vui lòng thử lại!';
+                showToast(errMsg, 'error');
             }
         } catch (error) {
             console.error(error);

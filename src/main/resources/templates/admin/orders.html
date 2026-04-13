@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="content">
+  <!-- STATS -->
+  <div class="stats" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+    <div class="stat-card" style="cursor:pointer" th:onclick="'window.location.href=\'/admin/orders\''">
+      <div class="icon-wrap" style="background:#f1f5f9;color:#475569"><i class="fas fa-list"></i></div>
+      <div class="label">Tất cả</div>
+      <div class="value" th:text="${statusCounts['Total']}">0</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer" th:onclick="'window.location.href=\'/admin/orders?status=Pending\''">
+      <div class="icon-wrap" style="background:#fffbeb;color:#b45309"><i class="fas fa-clock"></i></div>
+      <div class="label">Chờ xác nhận</div>
+      <div class="value" th:text="${statusCounts['Pending']}">0</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer" th:onclick="'window.location.href=\'/admin/orders?status=Confirmed\''">
+      <div class="icon-wrap" style="background:#eff6ff;color:#2563eb"><i class="fas fa-check-circle"></i></div>
+      <div class="label">Đã xác nhận</div>
+      <div class="value" th:text="${statusCounts['Confirmed']}">0</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer" th:onclick="'window.location.href=\'/admin/orders?status=Shipping\''">
+      <div class="icon-wrap" style="background:#f5f3ff;color:#7c3aed"><i class="fas fa-truck"></i></div>
+      <div class="label">Đang giao</div>
+      <div class="value" th:text="${statusCounts['Shipping']}">0</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer" th:onclick="'window.location.href=\'/admin/orders?status=Delivered\''">
+      <div class="icon-wrap" style="background:#ecfdf5;color:#059669"><i class="fas fa-check-double"></i></div>
+      <div class="label">Đã giao</div>
+      <div class="value" th:text="${statusCounts['Delivered']}">0</div>
+    </div>
+    <div class="stat-card" style="cursor:pointer" th:onclick="'window.location.href=\'/admin/orders?status=Cancelled\''">
+      <div class="icon-wrap" style="background:#fef2f2;color:#dc2626"><i class="fas fa-times-circle"></i></div>
+      <div class="label">Đã hủy</div>
+      <div class="value" th:text="${statusCounts['Cancelled']}">0</div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <h3>Quản lý đơn hàng</h3>
+      <div style="display:flex;gap:8px">
+        <form th:action="@{/admin/orders}" method="get" style="display:flex;gap:8px">
+          <select name="status" class="btn btn-outline btn-sm" style="font-family:inherit" onchange="this.form.submit()">
+            <option value="" th:selected="${statusFilter == null || statusFilter == ''}">Tất cả</option>
+            <option value="Pending" th:selected="${statusFilter == 'Pending'}">Chờ xác nhận</option>
+            <option value="Confirmed" th:selected="${statusFilter == 'Confirmed'}">Đã xác nhận</option>
+            <option value="Shipping" th:selected="${statusFilter == 'Shipping'}">Đang giao</option>
+            <option value="Delivered" th:selected="${statusFilter == 'Delivered'}">Đã giao</option>
+            <option value="Cancelled" th:selected="${statusFilter == 'Cancelled'}">Đã hủy</option>
+          </select>
+        </form>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Mã đơn</th><th>Khách hàng</th><th>SĐT</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th>Thao tác</th></tr>
+      </thead>
+      <tbody>
+        <tr th:if="${#lists.isEmpty(orders)}">
+          <td colspan="7" class="empty-state"><i class="fas fa-inbox"></i><p>Không có đơn hàng</p></td>
+        </tr>
+        <tr th:each="o : ${orders}" style="cursor:pointer" th:onclick="'window.location.href=\'/admin/orders/' + ${o.orderId} + '\''">
+          <td><strong th:text="${o.orderCode}">-</strong></td>
+          <td th:title="${o.shippingAddressLine + (o.shippingWard != null ? ', ' + o.shippingWard : '') + (o.shippingCity != null ? ', ' + o.shippingCity : '')}">
+            <div th:text="${o.shippingRecipientName}">-</div>
+            <small style="color:var(--text2);font-size:11px" th:text="${o.shippingCity}">-</small>
+          </td>
+          <td th:text="${o.shippingPhone}">-</td>
+          <td style="font-weight:600" th:text="${#numbers.formatInteger(o.finalAmount, 0, 'POINT') + 'đ'}">-</td>
+          <td th:text="${o.paymentMethod}">-</td>
+          <td>
+            <span class="badge-status"
+                  th:classappend="${o.orderStatus == 'Pending'} ? 'badge-pending' : (${o.orderStatus == 'Confirmed'} ? 'badge-confirmed' : (${o.orderStatus == 'Shipping'} ? 'badge-shipping' : (${o.orderStatus == 'Delivered'} ? 'badge-delivered' : 'badge-cancelled')))"
+                  th:text="${o.orderStatus == 'Pending'} ? 'Chờ xác nhận' : (${o.orderStatus == 'Confirmed'} ? 'Đã xác nhận' : (${o.orderStatus == 'Shipping'} ? 'Đang giao' : (${o.orderStatus == 'Delivered'} ? 'Đã giao' : 'Đã hủy')))">-</span>
+          </td>
+          <td>
+            <div class="action-btns" onclick="event.stopPropagation()">
+              <a th:href="@{/admin/orders/{id}(id=${o.orderId})}" class="btn btn-outline btn-sm" title="Xem"><i class="fas fa-eye"></i></a>
+              <select class="btn btn-outline btn-sm" style="font-family:inherit"
+                      th:onchange="'updateOrderStatus(' + ${o.orderId} + ', this.value)'">
+                <option value="" disabled selected>Đổi TT</option>
+                <option value="Pending">Chờ xác nhận</option>
+                <option value="Confirmed">Xác nhận</option>
+                <option value="Shipping">Đang giao</option>
+                <option value="Delivered">Đã giao</option>
+                <option value="Cancelled">Hủy</option>
+              </select>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- Pagination -->
+    <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border)">
+      <span style="font-size:13px;color:var(--text2)"
+            th:text="'Trang ' + (${currentPage + 1}) + ' / ' + ${totalPages > 0 ? totalPages : 1} + ' (' + ${totalElements} + ' đơn)'">-</span>
+      <div style="display:flex;gap:6px">
+        <a th:if="${currentPage > 0}"
+           th:href="@{/admin/orders(page=${currentPage - 1}, status=${statusFilter})}"
+           class="btn btn-outline btn-sm">‹ Trước</a>
+        <a th:if="${currentPage < totalPages - 1}"
+           th:href="@{/admin/orders(page=${currentPage + 1}, status=${statusFilter})}"
+           class="btn btn-outline btn-sm">Sau ›</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  async function updateOrderStatus(id, status) {
+    const d = await fetch('/admin/orders/'+id+'/update-status', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status})
+    }).then(r=>r.json());
+    if(d.status === 'SUCCESS') { toast('Cập nhật trạng thái thành công'); setTimeout(()=>location.reload(), 500); }
+    else toast(d.message || 'Lỗi', 'error');
+  }
+  </script>
+</div>
+</html>

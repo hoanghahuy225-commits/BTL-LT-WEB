@@ -1,6 +1,8 @@
 package com.example.WebBanHang.repository;
 
 import com.example.WebBanHang.model.Order;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,5 +13,9 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findByUserIdOrderByOrderDateDesc(Integer userId);
     Optional<Order> findById(Integer id);
-   
+    List<Order> findByOrderCodeContainingIgnoreCaseOrShippingRecipientNameContainingIgnoreCase(String code, String recipient);
+    
+    long countByOrderStatus(String orderStatus);
+    
+    Page<Order> findByOrderStatus(String orderStatus, Pageable pageable);
 }

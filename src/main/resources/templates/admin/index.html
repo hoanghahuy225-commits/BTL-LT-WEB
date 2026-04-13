@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SportZone Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/admin/style.css}"/>
+</head>
+<body>
+
+<script>
+// ===== GLOBAL STATE & HELPERS (PHẢI LOAD TRƯỚC FRAGMENTS) =====
+let currentPage='dashboard', categories=[], brands=[], sports=[], colors=[], sizes=[], products=[], orderPage=0;
+let currentProduct=null, productVariants=[], productImages=[];
+const pageTitles={dashboard:'Dashboard',products:'Sản phẩm',orders:'Đơn hàng',categories:'Danh mục',brands:'Thương hiệu',sports:'Môn thể thao',colors:'Màu sắc',sizes:'Kích thước',staff:'Nhân viên'};
+
+async function api(url,opts={}){
+  try{const r=await fetch(url,{headers:{'Content-Type':'application/json'},...opts});return await r.json();}catch(e){return{status:'ERROR',message:e.message};}
+}
+async function uploadFileToApi(file){
+  const fd=new FormData();fd.append('file',file);
+  try{const r=await fetch('/api/upload',{method:'POST',body:fd});const d=await r.json();if(d.status==='SUCCESS')return d.data;}catch(e){}
+  return null;
+}
+function fmt(n){return n!=null?Number(n).toLocaleString('vi-VN')+'đ':'-';}
+function toast(msg,type='success'){
+  const container = document.getElementById('toastContainer');
+  if(!container) return;
+  const t=document.createElement('div');t.className='toast toast-'+type;
+  t.innerHTML=`<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}"></i>${msg}`;
+  container.appendChild(t);setTimeout(()=>t.remove(),3500);
+}
+function lookupName(arr,id,vk='id',lk='name'){const f=arr.find(i=>i[vk]==id);return f?f[lk]:'-';}
+async function ensureLookups(){
+  if(!categories.length){const r=await api('/category');if(r.status==='SUCCESS')categories=r.data||[];}
+  if(!brands.length){const r=await api('/brand/list');if(r.status==='SUCCESS')brands=r.data||[];}
+  if(!sports.length){const r=await api('/sport/list');if(r.status==='SUCCESS')sports=r.data||[];}
+  if(!colors.length){const r=await api('/color/list');if(r.status==='SUCCESS')colors=r.data||[];}
+  if(!sizes.length){const r=await api('/size/list');if(r.status==='SUCCESS')sizes=r.data||[];}
+}
+function statusBadge(s){
+  const m={Pending:'pending',Confirmed:'confirmed',Shipping:'shipping',Delivered:'delivered',Cancelled:'cancelled'};
+  const v={Pending:'Chờ xác nhận',Confirmed:'Đã xác nhận',Shipping:'Đang giao',Delivered:'Đã giao',Cancelled:'Đã hủy'};
+  return `<span class="badge-status badge-${m[s]||'pending'}">${v[s]||s}</span>`;
+}
+async function loadUser(){
+  const d=await api('/admin/me');
+  if(d.status==='SUCCESS'&&d.data){
+    document.getElementById('userName').textContent=d.data.fullName||'Admin';
+    document.getElementById('userRole').textContent=d.data.role;
+    document.getElementById('userAvatar').textContent=(d.data.fullName||'A').substring(0,2).toUpperCase();
+  }
+}
+</script>
+
+<!-- SIDEBAR -->
+<div th:replace="~{admin/fragments/sidebar :: sidebar}"></div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div th:replace="~{admin/fragments/topbar :: topbar}"></div>
+
+  <div class="content">
+    <!-- SECTIONS (Dashboard, Products, etc.) -->
+    <div th:replace="~{admin/fragments/sections :: sections}"></div>
+  </div>
+</div>
+
+<!-- MODALS & TOAST -->
+<div th:replace="~{admin/fragments/modals :: modals}"></div>
+
+<script>
+// ===== INITIALIZE =====
+window.addEventListener('DOMContentLoaded', () => {
+  loadUser();
+  loadDashboard();
+});
+</script>
+</body>
+</html>

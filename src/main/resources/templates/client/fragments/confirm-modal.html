@@ -2,27 +2,6 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!--
-  ╔══════════════════════════════════════════════════════════════╗
-  ║            CONFIRM MODAL – Fragment dùng chung               ║
-  ╠══════════════════════════════════════════════════════════════╣
-  ║  Include vào trang bất kỳ:                                   ║
-  ║    <div th:replace="~{client/fragments/confirm-modal :: confirm_modal}"></div>
-  ║                                                              ║
-  ║  Gọi trong JavaScript:                                       ║
-  ║    showConfirm({                                             ║
-  ║      title:       'Xóa sản phẩm?',                          ║
-  ║      message:     'Không thể hoàn tác.',                     ║
-  ║      type:        'danger',  // danger|warning|info|success  ║
-  ║      confirmText: 'Xóa',                                     ║
-  ║      backText:    'Hủy',                                     ║
-  ║      data:        { id: 123 },                               ║
-  ║      onConfirm:   (data) => { ... },                         ║
-  ║      onBack:      (data) => { ... },   // tùy chọn           ║
-  ║    });                                                       ║
-  ╚══════════════════════════════════════════════════════════════╝
--->
-
 <div th:fragment="confirm_modal">
 
   <!-- Overlay + hộp modal -->

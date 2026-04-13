@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="'SportZone Admin - ' + ${pageTitle}">SportZone Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/admin/style.css}"/>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div th:replace="~{admin/fragments/sidebar :: sidebar(activePage=${activePage})}"></div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div th:replace="~{admin/fragments/topbar :: topbar(pageTitle=${pageTitle}, currentUser=${currentUser})}"></div>
+
+  <div class="content">
+    <!-- FLASH MESSAGES -->
+    <div th:if="${successMessage}" class="flash-message flash-success">
+      <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+      <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+    </div>
+    <div th:if="${errorMessage}" class="flash-message flash-error">
+      <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+      <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+    </div>
+
+    <!-- PAGE CONTENT (mỗi trang con sẽ inject vào đây) -->
+    <div th:replace="~{__${contentFragment}__}"></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER (for JS actions like delete) -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+function toast(msg, type='success'){
+  const container = document.getElementById('toastContainer');
+  if(!container) return;
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.innerHTML = '<i class="fas fa-' + (type==='success'?'check-circle':'exclamation-circle') + '"></i>' + msg;
+  container.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+function fmt(n){ return n != null ? Number(n).toLocaleString('vi-VN') + 'đ' : '-'; }
+
+document.querySelectorAll('.flash-message').forEach(el => {
+  setTimeout(() => el.remove(), 5000);
+});
+
+</script>
+
+</body>
+</html>

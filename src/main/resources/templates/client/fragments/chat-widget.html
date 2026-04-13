@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Chat Widget Fragment – include this at the end of <body> in any client page -->
+<div th:fragment="chat_widget">
+
+  <!-- Floating Action Button -->
+  <button class="chat-fab" id="chatFab" title="Chat với chúng tôi">
+    <svg class="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+    <span class="chat-fab-badge hidden" id="chatBadge">0</span>
+  </button>
+
+  <!-- Chat Window -->
+  <div class="chat-window" id="chatWindow">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="chat-header-avatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="chat-header-info">
+        <h4>SportZone Support</h4>
+        <p><span class="chat-header-status"></span> Sẵn sàng hỗ trợ</p>
+      </div>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="chat-conn-status" id="chatConnStatus"></div>
+
+    <!-- Login Prompt (shown when not logged in) -->
+    <div class="chat-login-prompt" id="chatLoginPrompt" style="display: none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4M12 8h.01"/>
+      </svg>
+      <p>Vui lòng đăng nhập để bắt đầu trò chuyện với đội ngũ hỗ trợ của chúng tôi.</p>
+      <a href="/login" class="chat-login-btn">Đăng nhập ngay</a>
+    </div>
+
+    <!-- Chat Body (messages + input) -->
+    <div id="chatBody" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+      <!-- Messages -->
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-welcome">
+          <div class="chat-welcome-icon">👋</div>
+          <p>Xin chào! Chúng tôi sẵn sàng hỗ trợ bạn.<br>Hãy gửi tin nhắn để bắt đầu.</p>
+        </div>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="chat-typing" id="chatTyping">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>
+
+      <!-- Input -->
+      <div class="chat-input-area">
+        <input type="text" class="chat-input" id="chatInput"
+               placeholder="Nhập tin nhắn..." autocomplete="off" />
+        <button class="chat-send-btn" id="chatSendBtn" title="Gửi">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SockJS + StompJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+  <script src="/js/chat-widget.js"></script>
+</div>
+
+</body>
+</html>
