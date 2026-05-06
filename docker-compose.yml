@@ -1,0 +1,20 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: sports_shop
+    ports: 
+      - "3307:3306"
+    volumes: 
+      - mysql_data:/var/lib/mysql
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports: 
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sports_shop
+volumes:
+  mysql_data:
