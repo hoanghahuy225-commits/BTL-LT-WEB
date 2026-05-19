@@ -1,0 +1,15 @@
+.git/
+.gitattributes
+.gitignore
+
+.mvn/
+mvnw
+mvnw.cmd
+
+target/
+uploads/
+
+*.log
+
+dummy-data.http
+docker-compose.yml

@@ -2,12 +2,21 @@ services:
   mysql:
     image: mysql:8.4
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
       MYSQL_DATABASE: sports_shop
+    healthcheck:
+      test: mysql --user=$MYSQL_USER --password=$MYSQL_PASSWORD --execute="SHOW DATABASES;"
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
     ports: 
       - "3307:3306"
     volumes: 
       - mysql_data:/var/lib/mysql
+    restart: unless-stopped
   web:
     build:
       context: .
@@ -16,5 +25,12 @@ services:
       - "8080:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/sports_shop
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - mysql
+    restart: unless-stopped
 volumes:
   mysql_data:
