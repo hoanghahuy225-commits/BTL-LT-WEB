@@ -9,6 +9,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      db:
+        image: mysql:8.0
+        env:
+          MYSQL_USER: $MYSQL_USER
+          MYSQL_PASSWORD: $MYSQL_PASSWORD
+          MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+          MYSQL_DATABASE: sports_shop
     steps:
     - uses: actions/checkout@v4
     - name: set up jdk 21
@@ -19,9 +27,3 @@ jobs:
         cache: maven 
     - name: run test
       run: mvn test
-    - name: Show test error details
-      if: failure()
-      run: |
-        echo "=== Test error details ==="
-        cat target/surefire-reports/*.txt || echo "No .txt files found"
-        cat target/surefire-reports/*.xml || echo "No .xml files found"
