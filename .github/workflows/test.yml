@@ -9,32 +9,37 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     services:
       db:
         image: mysql:8.0
         env:
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD}}
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_DATABASE: sports_shop
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         ports:
           - 3306:3306
         options: >-
-          --health-cmd mysql --user=$MYSQL_USER --password=%MYSQL_PASSWORD --execute="show database;"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -p${MYSQL_ROOT_PASSWORD}"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
+
     env:
       MYSQL_USER: ${{ secrets.MYSQL_USER }}
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD}}
-      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/sports_shop?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC  
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/sports_shop?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+
     steps:
       - uses: actions/checkout@v4
-      - name: set up jdk 21
+
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
-        with: 
+        with:
           distribution: temurin
-          java-version: 21
-          cache: maven 
-      - name: run test
-        run: mvn test
+          java-version: '21'
+          cache: maven
+
+      - name: Run test
+        run: ./mvnw test
