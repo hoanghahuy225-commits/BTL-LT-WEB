@@ -19,14 +19,22 @@ jobs:
           MYSQL_DATABASE: sports_shop
         ports:
           - 3306:3306
-      
+        options: >-
+          --health-cmd mysql --user=$MYSQL_USER --password=%MYSQL_PASSWORD --execute="show database;"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      MYSQL_USER: ${{ secrets.MYSQL_USER }}
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD}}
+      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/sports_shop?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC  
     steps:
-    - uses: actions/checkout@v4
-    - name: set up jdk 21
-      uses: actions/setup-java@v4
-      with: 
-        distribution: temurin
-        java-version: 21
-        cache: maven 
-    - name: run test
-      run: mvn test
+      - uses: actions/checkout@v4
+      - name: set up jdk 21
+        uses: actions/setup-java@v4
+        with: 
+          distribution: temurin
+          java-version: 21
+          cache: maven 
+      - name: run test
+        run: mvn test
