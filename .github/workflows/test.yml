@@ -17,8 +17,8 @@ jobs:
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD}}
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_DATABASE: sports_shop
-      ports:
-        - 3306:3306
+        ports:
+          - 3306:3306
       
     steps:
     - uses: actions/checkout@v4
