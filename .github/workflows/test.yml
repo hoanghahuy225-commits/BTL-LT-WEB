@@ -29,7 +29,7 @@ jobs:
     env:
       MYSQL_USER: ${{ secrets.MYSQL_USER }}
       MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/sports_shop?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/sports_shop
 
     steps:
       - uses: actions/checkout@v4
