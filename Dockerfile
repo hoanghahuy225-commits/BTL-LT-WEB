@@ -9,9 +9,12 @@
     
     FROM eclipse-temurin:21-jre 
     WORKDIR /app
+    RUN apt-get update && apt-get install -y curl
+
     RUN useradd -m -u 1001 spring
     RUN chown -R spring:spring /app
     USER spring
+    
     COPY --from=build /app/target/*.jar myweb.jar
     EXPOSE 8080
     HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \

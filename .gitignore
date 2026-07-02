@@ -36,3 +36,5 @@ build/
 uploads/
 compile_log.txt
 compile_output.txt
+
+.env
